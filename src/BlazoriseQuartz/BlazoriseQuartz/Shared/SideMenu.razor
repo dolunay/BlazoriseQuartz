@@ -5,12 +5,21 @@
         <BarItem>
             <BarLink To="">
                 <BarIcon IconName="customIcon" />
-                Blazorise Demo
+                BlazoriseQuartz
             </BarLink>
         </BarItem>
     </BarBrand>
     <BarMenu>
         <BarStart>
+            <BarItem>
+                <BarLink To="overview">Overview</BarLink>
+            </BarItem>
+            <BarItem>
+                <BarLink To="schedules">Schedules</BarLink>
+            </BarItem>
+            <BarItem>
+                <BarLink To="history">History</BarLink>
+            </BarItem>
         </BarStart>
         <BarEnd>
         </BarEnd>
@@ -23,5 +32,5 @@
     private bool formsVisible = false;
     private bool datagridVisible = false;
 
-    RenderFragment customIcon =@<img src="/brand-logo.png" style="width:32px; height: 32px" />;
+    RenderFragment customIcon =@<img src="/logo.png" style="width:32px; height: 32px" />;
 }

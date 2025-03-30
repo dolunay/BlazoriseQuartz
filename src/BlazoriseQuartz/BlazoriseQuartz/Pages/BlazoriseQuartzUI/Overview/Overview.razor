@@ -21,14 +21,14 @@
         </BarEnd>
     </Bar>
     <Grid>
-        <Column ColumnSize="ColumnSize.Is3" Margin="Margin.Is1">
-            <Paper Elevation="2" Margin="Margin.Is1" Padding="Padding.Is1">
+        <Column ColumnSize="ColumnSize.Is3" Margin="Margin.Is1" Height="Height.Is100">
+            <Paper Elevation="2" Margin="Margin.Is1" Padding="Padding.Is1" Height="Height.Is100">
                 <Heading Size="HeadingSize.Is5" Class="title">Today</Heading>
                 <Chart @ref="todaysChart" TItem="double" Type="ChartType.Doughnut" Options="chartOptions" />
             </Paper>
         </Column>
-        <Column ColumnSize="ColumnSize.Is3" Margin="Margin.Is1">
-            <Paper Elevation="2" Margin="Margin.Is1" Padding="Padding.Is1">
+        <Column ColumnSize="ColumnSize.Is3" Margin="Margin.Is1" Height="Height.Is100">
+            <Paper Elevation="2" Margin="Margin.Is1" Padding="Padding.Is1" Height="Height.Is100">
                 <Heading Size="HeadingSize.Is5" Class="title">Yesterday</Heading>
                 <Chart @ref="yesterdaysChart" TItem="double" Type="ChartType.Doughnut" Options="chartOptions" />
             </Paper>
@@ -36,15 +36,15 @@
         @* show all time logs if more than 1 day*@
         @if (TotalLogDays > 1)
         {
-            <Column ColumnSize="ColumnSize.Is3" Margin="Margin.Is1">
-                <Paper Elevation="2" Margin="Margin.Is1" Padding="Padding.Is1">
+            <Column ColumnSize="ColumnSize.Is3" Margin="Margin.Is1" Height="Height.Is100">
+                <Paper Elevation="2" Margin="Margin.Is1" Padding="Padding.Is1" Height="Height.Is100">
                     <Heading Size="HeadingSize.Is5" Class="title">Last @TotalLogDays days</Heading>
                     <Chart @ref="allTimeChart" TItem="double" Type="ChartType.Doughnut" Options="chartOptions" />
                 </Paper>
             </Column>
         }
         @* Actions & Schedules *@
-        <Column ColumnSize="ColumnSize.Is3" Margin="Margin.Is1">
+        <Column ColumnSize="ColumnSize.Is3" Margin="Margin.Is1" Height="Height.Is100">
             <Paper Elevation="2" Margin="Margin.Is1" Padding="Padding.Is1">
                 <Heading Size="HeadingSize.Is5" Class="title">Actions</Heading>
                 <Div Class="actionsform">
