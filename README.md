@@ -1,6 +1,7 @@
 # BlazoriseQuartz
 [![PR Build & Test](https://github.com/dolunay/BlazoriseQuartz/actions/workflows/ci.pr.yml/badge.svg)](https://github.com/dolunay/BlazoriseQuartz/actions/workflows/ci.pr.yml)
 [![CodeQL](https://github.com/dolunay/BlazoriseQuartz/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/dolunay/BlazoriseQuartz/actions/workflows/codeql-analysis.yml)
+[![Build and Publish](https://github.com/dolunay/BlazoriseQuartz/actions/workflows/ci.yml/badge.svg)](https://github.com/dolunay/BlazoriseQuartz/actions/workflows/ci.yml)
 
 BlazoriseQuartz is an easy to use [Blazor](https://blazor.net) web UI to manage [Quartz.NET](https://github.com/quartznet/quartznet) scheduler jobs.
 

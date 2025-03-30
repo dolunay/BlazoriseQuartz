@@ -70,4 +70,4 @@ jobs:
         context: .
         push: true
         platforms: linux/amd64,linux/arm64
-        tags: dolunay/blazorisequartzapp:latest, dolunay/blazorisequartzapp:${{steps.tag.outputs.tag}}
+        tags: syrna/blazorisequartzapp:latest, syrna/blazorisequartzapp:${{steps.tag.outputs.tag}}
