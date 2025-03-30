@@ -1,0 +1,30 @@
+name: PR Build & Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main", "dev" ]
+  pull_request:
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: | 
+          7.0.x
+          8.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+      working-directory: src/BlazingQuartz
+    - name: Build
+      run: dotnet build --no-restore
+      working-directory: src/BlazingQuartz
+    - name: Test
+      run: dotnet test --no-build --verbosity normal
+      working-directory: src/BlazingQuartz
