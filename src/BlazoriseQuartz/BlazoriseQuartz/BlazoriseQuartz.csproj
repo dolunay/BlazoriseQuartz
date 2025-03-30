@@ -34,7 +34,7 @@
 		<PackageReference Include="Blazorise.LoadingIndicator" Version="1.7.5" />
 		<PackageReference Include="Blazorise.Icons.Material" Version="1.7.5" />
 		<PackageReference Include="CronExpressionDescriptor" Version="2.39.0" />
-		<PackageReference Include="LibSassBuilder" Version="3.0.0" />
+		<PackageReference Include="DartSassBuilder" Version="1.1.0" />
 		<PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.3" />
 	</ItemGroup>
 
