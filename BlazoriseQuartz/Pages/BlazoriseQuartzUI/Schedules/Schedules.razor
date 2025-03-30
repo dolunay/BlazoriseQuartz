@@ -1,0 +1,315 @@
+﻿@using Blazorise.DataGrid
+@using BlazoriseQuartz.Core.Models
+@page "/schedules"
+
+<PageTitle>Schedules</PageTitle>
+
+<Offcanvas @bind-Visible="@_openFilter" Placement="Placement.End">
+    <OffcanvasHeader>
+        <Heading Size="HeadingSize.Is6">Filter Schedules</Heading>
+    </OffcanvasHeader>
+    <OffcanvasBody>
+        <div class="d-flex flex-column px-4 gap-2">
+            <Check Checked="@_filter.IncludeSystemJobs"
+                   TValue="bool"
+                   CheckedChanged="OnIncludeSystemJobsChanged">Show BlazoriseQuartz jobs</Check>
+        </div>
+        <div class="d-flex pa-4 justify-space-between gap-2">
+            <Button Clicked="OnCancelFilter">Cancel</Button>
+            <div class="d-flex gap-2">
+                <Button Color="Color.Secondary"
+                        Clicked="OnClearFilter">
+                    Clear
+                </Button>
+                <Button Color="Color.Primary"
+                        Clicked="OnSaveFilter">
+                    Save
+                </Button>
+            </div>
+        </div>
+    </OffcanvasBody>
+</Offcanvas>
+
+<Bar Breakpoint="Breakpoint.Desktop" Background="Background.Light" Shadow="Shadow.Remove" ThemeContrast="ThemeContrast.Light">
+    <BarBrand>
+        <Heading Size="HeadingSize.Is4">Schedules</Heading>
+    </BarBrand>
+    <BarStart>
+        <Button Color="Color.Primary" Margin="Margin.Is1"
+                Clicked="OnNewSchedule">
+            <Icon Name="@MaterialIcons.Add"></Icon>
+            New
+        </Button>
+        <Button Color="Color.Danger" Margin="Margin.Is1"
+                Clicked="OnDeleteSelectedScheduleJobs">
+            <Icon Name="@MaterialIcons.Delete"></Icon>
+            Delete
+        </Button>
+    </BarStart>
+    <BarEnd>
+        <Addons>
+            <Addon AddonType="AddonType.Start">
+                <Icon IconSize="IconSize.Default" Name="@MaterialIcons.Search" Margin="Margin.Is2"></Icon>
+            </Addon>
+            <Addon AddonType="AddonType.Body">
+                <TextEdit @bind-Text="_searchJobKeyword" Placeholder="Search"></TextEdit>
+            </Addon>
+            <Addon AddonType="AddonType.End">
+                <Icon IconSize="IconSize.Default" Clicked="OnFilterClicked" Name="@MaterialIcons.FilterAlt" Margin="Margin.Is2"></Icon>
+            </Addon>
+        </Addons>
+    </BarEnd>
+</Bar>
+<DataGrid @ref="_scheduleDataGrid"
+          TItem="ScheduleModel"
+          Data="@ScheduledJobs"
+          SelectionMode="DataGridSelectionMode.Multiple"
+          SortMode="DataGridSortMode.Multiple"
+          Filterable="false"
+          Editable="false"
+          Groupable
+          ShowPager
+          FixedHeader
+          Hoverable
+          Responsive
+          Striped>
+    <LoadingTemplate>
+        <Row Class="w-100 align-items-center" Style="height: 150px;">
+            <Column>
+                <RadarSpinner />
+            </Column>
+        </Row>
+    </LoadingTemplate>
+    <EmptyTemplate>
+        <Row Class="w-100 align-items-center" Style="height: 150px;">
+            <Column>
+                <Heading Size="HeadingSize.Is4" TextAlignment="TextAlignment.Center">No data available</Heading>
+            </Column>
+        </Row>
+    </EmptyTemplate>
+    <DataGridColumns>
+        <DataGridMultiSelectColumn Width="30px"></DataGridMultiSelectColumn>
+        <DataGridColumn Field="@nameof(ScheduleModel.JobGroup)" Caption="Job Group" Groupable="true" Grouping="true" GroupBy="@_groupDefinition">
+            <GroupTemplate>
+                <span style="font-weight:bold">
+                    Job Group: @context.Key
+                    <Badge Color="Color.Info">Total: @context.Items.Count()</Badge>
+                </span>
+            </GroupTemplate>
+        </DataGridColumn>
+
+        <DataGridColumn Field="@nameof(ScheduleModel.JobStatus)" Caption="Status" Filterable="false" Groupable="false" Sortable="false" Width="40px">
+            <DisplayTemplate>
+                @switch (context.JobStatus)
+                {
+                    case JobStatus.Running:
+                        <RadarSpinnerSmall />
+                        break;
+                    case JobStatus.Idle:
+                        <Icon Name="@MaterialIcons.Circle" TextColor="TextColor.Primary"
+                              Style="vertical-align: middle;"
+                              aria-label="Idle"
+                              IconSize="IconSize.Default" />
+                        break;
+                    case JobStatus.Paused:
+                        <Icon Name="@MaterialIcons.Circle" TextColor="TextColor.Warning"
+                              Style="vertical-align: middle;"
+                              aria-label="Paused"
+                              IconSize="IconSize.Default" />
+                        break;
+                    case JobStatus.NoSchedule:
+                        <Icon Name="@MaterialIcons.AutoDelete" TextColor="TextColor.Info"
+                              Style="vertical-align: middle;"
+                              aria-label="Schedule completed and job got deleted"
+                              IconSize="IconSize.Default" />
+                        break;
+                    case JobStatus.Error:
+                        <Tooltip Text="@GetTooltipText(context)">
+                            <Icon Name="@MaterialIcons.ErrorOutline" TextColor="TextColor.Danger" IconSize="IconSize.Default"
+                                  Style="vertical-align: middle;" />
+                        </Tooltip>
+                        break;
+                    case JobStatus.NoTrigger:
+                        <Icon Name="@MaterialIcons.AlarmOff" TextColor="TextColor.Muted"
+                              Style="vertical-align: middle;"
+                              aria-label="No trigger"
+                              IconSize="IconSize.Default" />
+                        break;
+                    default:
+                        break;
+                }
+            </DisplayTemplate>
+        </DataGridColumn>
+
+        <DataGridColumn Field="@nameof(ScheduleModel.JobName)" Caption="Job Name" Width="20%">
+            <DisplayTemplate>
+                <Tooltip FadeDuration="1000" Text="@context.JobDescription">
+                    @context.JobName
+                </Tooltip>
+            </DisplayTemplate>
+        </DataGridColumn>
+
+        <DataGridColumn Field="@nameof(ScheduleModel.TriggerName)" Caption="Trigger" Width="20%">
+            <DisplayTemplate>
+                @if (context.JobStatus == JobStatus.NoTrigger)
+                {
+                    <span style="color:gray;">--</span>
+                }
+                else
+                {
+                    <Tooltip FadeDuration="1000" Text="@context.TriggerDescription">
+                        @context.TriggerName
+                    </Tooltip>
+                }
+            </DisplayTemplate>
+        </DataGridColumn>
+
+        <DataGridColumn Field="@nameof(ScheduleModel.TriggerType)" Caption="Schedule" Width="160px">
+            <DisplayTemplate>
+                @if (context.JobStatus == JobStatus.NoTrigger)
+                {
+                    <span style="color:gray;">--</span>
+                }
+                else
+                {
+                    @if (context.TriggerDetail == null)
+                    {
+                        <div class="d-flex align-center">
+                            <Icon Name="@context.TriggerType.GetTriggerTypeIcon()"
+                                  aria-label="@(context.TriggerType.ToString())" IconSize="IconSize.Small"
+                                  Class="mr-1" />
+                            @(context.TriggerType == TriggerType.Unknown ?
+                                context.TriggerTypeClassName ?? TriggerType.Unknown.ToString() :
+                                context.TriggerType)
+                        </div>
+                    }
+                    else
+                    {
+                        <Tooltip Text="@TriggerDetailToolTipText(context)">
+                            <div class="d-flex align-center">
+                                <Icon Name="@context.TriggerType.GetTriggerTypeIcon()"
+                                      aria-label="@(context.TriggerType.ToString())" IconSize="IconSize.Small"
+                                      Class="mr-1" />
+                                @(context.TriggerType == TriggerType.Unknown ?
+                                    context.TriggerTypeClassName ?? TriggerType.Unknown.ToString() :
+                                    context.TriggerType)
+                            </div>
+                        </Tooltip>
+                    }
+                }
+            </DisplayTemplate>
+        </DataGridColumn>
+
+        <DataGridColumn Field="@nameof(ScheduleModel.JobType)" Caption="Job Type" Width="15%">
+            <DisplayTemplate>
+                <Tooltip FadeDuration="1000" Text="@context.JobType">
+                    @context.GetJobTypeShortName()
+                </Tooltip>
+            </DisplayTemplate>
+        </DataGridColumn>
+
+        <DataGridColumn Field="@nameof(ScheduleModel.NextTriggerTime)" Caption="Next Run" Width="160px">
+            <DisplayTemplate>
+                @if (context.JobStatus == JobStatus.NoTrigger)
+                {
+                    <span style="color:gray;">--</span>
+                }
+                else
+                {
+                    @context.NextTriggerTime?.LocalDateTime
+                }
+            </DisplayTemplate>
+        </DataGridColumn>
+
+        <DataGridColumn Field="@nameof(ScheduleModel.PreviousTriggerTime)" Caption="Last Run" Width="160px">
+            <DisplayTemplate>
+                <div class="d-flex gap-1">
+                    @if (!string.IsNullOrEmpty(context.ExceptionMessage)
+                    && context.JobStatus != JobStatus.Error)
+                    {
+                        <Tooltip Text="@ExceptionMessageToolTipText(context)">
+                            <Icon Name="@MaterialIcons.Error" IconSize="IconSize.Small" />
+                        </Tooltip>
+                    }
+                    @if (context is { JobStatus: JobStatus.NoTrigger, PreviousTriggerTime: null })
+                    {
+                        <span style="color:gray;">--</span>
+                    }
+                    else
+                    {
+                        @context.PreviousTriggerTime?.LocalDateTime
+                    }
+                </div>
+            </DisplayTemplate>
+        </DataGridColumn>
+
+        <DataGridColumn Caption="Commands" Width="140px">
+            <DisplayTemplate>
+                <Tooltip FadeDuration="1000" Text="Edit">
+                    <Button Disabled="@IsEditActionDisabled(context)"
+                            Clicked="@(async () => await OnEditScheduleJob(context))"
+                            aria-label="Edit">
+                        <Icon Name="@MaterialIcons.Edit" IconSize="IconSize.Small"></Icon>
+                    </Button>
+                </Tooltip>
+
+                @if (@context.JobStatus is JobStatus.Paused or JobStatus.NoTrigger)
+                {
+                    <Tooltip FadeDuration="1000" Text="Resume Trigger">
+                        <Button Disabled="@IsRunActionDisabled(context)"
+                                Clicked="@(async () => await OnResumeScheduleJob(context))"
+                                aria-label="Run">
+                            <Icon Name="@MaterialIcons.PlayArrow" IconSize="IconSize.Small"></Icon>
+                        </Button>
+                    </Tooltip>
+                }
+                else
+                {
+                    <Tooltip FadeDuration="1000" Text="Pause Trigger">
+                        <Button Disabled="@IsPauseActionDisabled(context)"
+                                Clicked="@(async () => await OnPauseScheduleJob(context))"
+                                aria-label="Run">
+                            <Icon Name="@MaterialIcons.Pause" IconSize="IconSize.Small"></Icon>
+                        </Button>
+                    </Tooltip>
+                }
+                <Dropdown>
+                    <Button Color="Color.Primary"><Icon Name="@MaterialIcons.MoreHoriz" IconSize="IconSize.Small"></Icon></Button>
+                    <DropdownToggle Color="Color.Primary" Split />
+                    <DropdownMenu>
+                        <DropdownItem Disabled="@IsTriggerNowActionDisabled(context)"
+                                      Clicked="@(async () => await OnTriggerNow(context))">
+                                <Icon Name="@MaterialIcons.PlayCircleOutline" aria-label="Trigger Now"
+                                      IconSize="IconSize.Small" />
+                                Trigger Now
+                        </DropdownItem>
+                        <DropdownItem Disabled="@IsAddTriggerActionDisabled(context)"
+                                      Clicked="@(async () => await OnAddTrigger(context))">
+                                <Icon Name="@MaterialIcons.AddAlarm" aria-label="Add Trigger"
+                                      IconSize="IconSize.Small" />
+                                Add Trigger
+                        </DropdownItem>
+                        <DropdownItem Disabled="@IsCopyActionDisabled(context)"
+                                      Clicked="@(async () => await OnDuplicateScheduleJob(context))">
+                                <Icon Name="@MaterialIcons.ContentCopy" aria-label="Clone Schedule"
+                                      IconSize="IconSize.Small" />
+                                Clone Schedule
+                        </DropdownItem>
+                        <DropdownItem Disabled="@IsHistoryActionDisabled(context)"
+                                      Clicked="@(async () => await OnJobHistory(context))">
+                                <Icon Name="@MaterialIcons.ListAlt" aria-label="History"
+                                      IconSize="IconSize.Small" />
+                                History
+                        </DropdownItem>
+                        <DropdownItem Clicked="@(async () => await OnDeleteScheduleJob(context))"
+                                      Disabled="@IsDeleteActionDisabled(context)">
+                                <Icon Name="@MaterialIcons.Delete" aria-label="Delete Schedule"
+                                      IconSize="IconSize.Small" />
+                                Delete Schedule
+                        </DropdownItem>
+                    </DropdownMenu>
+                </Dropdown>
+            </DisplayTemplate>
+        </DataGridColumn>
+    </DataGridColumns>
+</DataGrid>

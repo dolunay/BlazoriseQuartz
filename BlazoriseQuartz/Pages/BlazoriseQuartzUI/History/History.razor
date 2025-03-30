@@ -1,0 +1,227 @@
+@page "/history"
+@using Blazorise.DataGrid
+@using BlazoriseQuartz.Core.Data.Entities
+@using Core.Data
+
+<PageTitle>History</PageTitle>
+
+<Offcanvas @bind-Visible="@_openFilter" Placement="Placement.End">
+    <OffcanvasHeader>
+        <Heading Size="HeadingSize.Is6">Filter Logs</Heading>
+    </OffcanvasHeader>
+    <OffcanvasBody>
+        <div class="d-flex flex-column px-4 gap-2">
+            <Field>
+                <FieldLabel>Job Group</FieldLabel>
+                <FieldBody>
+                    <Select TValue="string"
+                            SelectedValue="@_filter.JobGroup"
+                            SelectedValueChanged="OnFilterJobGroupChanged">
+                        @foreach (var group in _jobGroups)
+                        {
+                            if (string.IsNullOrEmpty(group))
+                            {
+                                <SelectItem Value="@(string.Empty)">(Blank)</SelectItem>
+                                continue;
+                            }
+                            <SelectItem Value="@group" />
+                        }
+                    </Select>
+                </FieldBody>
+            </Field>
+
+            <Field>
+                <FieldLabel>Job Name</FieldLabel>
+                <FieldBody>
+                    <Select TValue="string"
+                            SelectedValue="@_filter.JobName"
+                            SelectedValueChanged="OnFilterJobNameChanged">
+                        @foreach (var name in _jobNames)
+                        {
+                            if (string.IsNullOrEmpty(name))
+                            {
+                                <SelectItem Value="@(string.Empty)">(Blank)</SelectItem>
+                                continue;
+                            }
+                            <SelectItem Value="@name" />
+                        }
+                    </Select>
+                </FieldBody>
+            </Field>
+
+            <Field>
+                <FieldLabel>Trigger Group</FieldLabel>
+                <FieldBody>
+                    <Select TValue="string"
+                            SelectedValue="@_filter.TriggerGroup"
+                            SelectedValueChanged="OnFilterTriggerGroupChanged">
+                        @foreach (var group in _triggerGroups)
+                        {
+                            if (string.IsNullOrEmpty(group))
+                            {
+                                <SelectItem Value="@(string.Empty)">(Blank)</SelectItem>
+                                continue;
+                            }
+                            <SelectItem Value="@group" />
+                        }
+                    </Select>
+                </FieldBody>
+            </Field>
+
+            <Field>
+                <FieldLabel>Trigger Name</FieldLabel>
+                <FieldBody>
+                    <Select TValue="string"
+                            SelectedValue="@_filter.TriggerName"
+                            SelectedValueChanged="OnFilterTriggerNameChanged">
+                        @foreach (var name in _triggerNames)
+                        {
+                            if (string.IsNullOrEmpty(name))
+                                continue;
+                            <SelectItem Value="@name" />
+                        }
+                    </Select>
+                </FieldBody>
+            </Field>
+
+            <Field>
+                <FieldLabel>Log type</FieldLabel>
+                <FieldBody>
+                    <Select TValue="LogType?"
+                            SelectedValue="_selectedLogType"
+                            SelectedValueChanged="OnSelectedLogTypesChanged">
+                        <SelectItem TValue="LogType?" Value="LogType.ScheduleJob">Jobs</SelectItem>
+                        <SelectItem TValue="LogType?" Value="LogType.Trigger">Triggers</SelectItem>
+                        <SelectItem TValue="LogType?" Value="LogType.System">System/Scheduler</SelectItem>
+                    </Select>
+                </FieldBody>
+            </Field>
+
+            <Check Checked="@_filter.ErrorOnly"
+                   TValue="bool"
+                   CheckedChanged="OnErrorOnlyChanged">Show error only</Check>
+
+            <Field>
+                <FieldLabel></FieldLabel>
+                <FieldBody>
+                    <Check Checked="@_filter.IncludeSystemJobs"
+                           TValue="bool"
+                           CheckedChanged="OnIncludeSystemJobsChanged">Show BlazoriseQuartz jobs</Check>
+                </FieldBody>
+            </Field>
+        </div>
+        <div class="d-flex pa-4 justify-space-between gap-2">
+            <Button Clicked="OnCancelFilter">Cancel</Button>
+            <div class="d-flex gap-2">
+                <Button Color="Color.Secondary" Clicked="OnClearFilter">Clear</Button>
+                <Button Color="Color.Primary" Clicked="OnSaveFilter">Save</Button>
+            </div>
+        </div>
+    </OffcanvasBody>
+</Offcanvas>
+
+<Bar Breakpoint="Breakpoint.Desktop" Background="Background.Light" Shadow="Shadow.Remove" ThemeContrast="ThemeContrast.Light">
+    <BarBrand>
+        <Heading Size="HeadingSize.Is4">History</Heading>
+    </BarBrand>
+    <BarStart>
+    </BarStart>
+    <BarEnd>
+        <Addons>
+            <Addon AddonType="AddonType.Start">
+                <Icon IconSize="IconSize.Default" Name="@MaterialIcons.Search"></Icon>
+            </Addon>
+            <Addon AddonType="AddonType.Body">
+                <TextEdit TextChanged="@OnSearch" Placeholder="Search"></TextEdit>
+            </Addon>
+            <Addon AddonType="AddonType.End">
+                <Icon Name="@MaterialIcons.Refresh" Clicked="RefreshLogs"></Icon>
+                <Icon Name="@MaterialIcons.FilterAlt" Clicked="OnFilterClicked"></Icon>
+            </Addon>
+        </Addons>
+    </BarEnd>
+</Bar>
+<DataGrid @ref="table"
+          TItem="ExecutionLog"
+          Data="@pagedData"
+          ReadData="@OnReadData"
+          TotalItems="@totalItems"
+          PageSize="@pageSize"
+          Editable="false"
+          ShowPager
+          FixedHeader
+          Hoverable
+          Responsive
+          Striped>
+    <LoadingTemplate>
+        <Row Class="w-100 align-items-center" Style="height: 250px;">
+            <Column>
+                <RadarSpinner />
+            </Column>
+        </Row>
+    </LoadingTemplate>
+    <EmptyTemplate>
+        <Row Class="w-100 align-items-center" Style="height: 250px;">
+            <Column>
+                <Heading Size="HeadingSize.Is4" TextAlignment="TextAlignment.Center">No data available</Heading>
+            </Column>
+        </Row>
+    </EmptyTemplate>
+    <DataGridColumns>
+        <DataGridColumn Field="@nameof(ExecutionLog.DateAddedUtc)" Caption="Date Added" Width="30px">
+            <DisplayTemplate>
+                @{
+                    var iconAndColor = GetLogIconAndColor(context);
+                }
+                <Icon Name="@iconAndColor.Item1" TextColor="@iconAndColor.Item2" title="@iconAndColor.Item3" IconSize="IconSize.Default" />
+            </DisplayTemplate>
+        </DataGridColumn>
+        <DataGridDateColumn Field="@nameof(ExecutionLog.DateAddedUtc)" Caption="Date Added" Width="160px">
+            <DisplayTemplate>
+                @context.DateAddedUtc.ToLocalTime().ToString("G")
+            </DisplayTemplate>
+        </DataGridDateColumn>
+        <DataGridColumn Field="@nameof(ExecutionLog.JobName)" Caption="Job Name"></DataGridColumn>
+        <DataGridColumn Field="@nameof(ExecutionLog.JobGroup)" Caption="Job Group"></DataGridColumn>
+        <DataGridColumn Field="@nameof(ExecutionLog.TriggerName)" Caption="Trigger"></DataGridColumn>
+        <DataGridColumn Field="@nameof(ExecutionLog.ErrorMessage)" Caption="Message" Width="30vw">
+            <DisplayTemplate>
+                <div>
+                    <Text TextColor="TextColor.Dark">
+                        @if (context.IsException ?? false)
+                        {
+                            @context.GetShortExceptionMessage()
+                            ;
+                        }
+                        else
+                        {
+                            @context.GetShortResultMessage()
+                            ;
+                        }
+                    </Text>
+                    @if (context.IsException ?? false)
+                    {
+                        <Button Size="Size.Default"
+                                Clicked="@(async () => await OnMoreDetails(context, "Error Details"))"
+                                Color="Color.Link">
+                            Error Details
+                        </Button>
+                    }
+                    else if (context.ShowExecutionDetailButton())
+                    {
+                        <Button Size="Size.Default"
+                                Clicked="@(async () => await OnMoreDetails(context, "Execution Details"))"
+                                Color="Color.Link">
+                            Execution Details
+                        </Button>
+                    }
+                </div>
+            </DisplayTemplate>
+        </DataGridColumn>
+        <DataGridDateColumn Field="@nameof(ExecutionLog.ScheduleFireTimeUtc)" Caption="Scheduled Time" Width="160px"></DataGridDateColumn>
+        <DataGridDateColumn Field="@nameof(ExecutionLog.FireTimeUtc)" Caption="Run Time" Width="160px"></DataGridDateColumn>
+        <DataGridColumn Field="@nameof(ExecutionLog.JobRunTime)" Caption="Duration" Width="120px">
+            <DisplayTemplate>@context.JobRunTime?.ToHumanTimeString()</DisplayTemplate>
+        </DataGridColumn>
+    </DataGridColumns>
+</DataGrid>
