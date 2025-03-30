@@ -1,0 +1,84 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+	<PropertyGroup>
+		<TargetFramework>net9.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<!--<LangVersion>11.0</LangVersion>-->
+		<ImplicitUsings>enable</ImplicitUsings>
+		<AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Compile Remove="Components\CssBuilder.cs" />
+		<Compile Remove="Components\StringBuilderCache.cs" />
+		<Compile Remove="Components\StyleBuilder.cs" />
+		<Compile Remove="Components\ValueBuilder.cs" />
+	</ItemGroup>
+
+
+	<ItemGroup>
+		<SupportedPlatform Include="browser" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.3" />
+		<PackageReference Include="Blazorise" Version="1.7.5" />
+		<PackageReference Include="Blazorise.Components" Version="1.7.5" />
+		<PackageReference Include="Blazorise.Charts" Version="1.7.5" />
+		<PackageReference Include="Blazorise.DataGrid" Version="1.7.5" />
+		<PackageReference Include="Blazorise.Material" Version="1.7.5" />
+		<PackageReference Include="Blazorise.LoadingIndicator" Version="1.7.5" />
+		<PackageReference Include="Blazorise.Icons.Material" Version="1.7.5" />
+		<PackageReference Include="CronExpressionDescriptor" Version="2.39.0" />
+		<PackageReference Include="DartSassBuilder" Version="1.1.0" />
+		<PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.3" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Remove="Pages\" />
+		<None Remove="Pages\BlazoriseQuartzUI\" />
+		<None Remove="Shared\" />
+		<None Remove="Blazorise" />
+		<None Remove="Extensions\" />
+		<None Remove="Services\" />
+		<None Remove="Pages\BlazoriseQuartzUI\Calendars\" />
+		<None Remove="Pages\BlazoriseQuartzUI\History\" />
+		<None Remove="Pages\BlazoriseQuartzUI\Schedules\" />
+		<None Remove="Pages\BlazoriseQuartzUI\Triggers\" />
+		<None Remove="Pages\BlazoriseQuartzUI\Overview\" />
+		<None Remove="System.Linq.Async" />
+		<None Remove="Components\" />
+		<None Remove="CronExpressionDescriptor" />
+		<None Remove="LibSassBuilder" />
+		<None Remove="Microsoft.Extensions.Options.ConfigurationExtensions" />
+		<None Remove="Jobs\" />
+		<None Remove="Jobs\UI\" />
+	</ItemGroup>
+	<ItemGroup>
+		<Folder Include="Extensions\" />
+		<Folder Include="Services\" />
+		<Folder Include="Pages\BlazoriseQuartzUI\Calendars\" />
+		<Folder Include="Pages\BlazoriseQuartzUI\History\" />
+		<Folder Include="Pages\BlazoriseQuartzUI\Schedules\" />
+		<Folder Include="Pages\BlazoriseQuartzUI\Triggers\" />
+		<Folder Include="Jobs\" />
+		<Folder Include="Jobs\UI\" />
+	</ItemGroup>
+	<ItemGroup>
+		<Content Remove="wwwroot\css\" />
+		<Content Remove="wwwroot\styles.css" />
+	</ItemGroup>
+	<ItemGroup>
+		<None Include="wwwroot\styles.css" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\BlazoriseQuartz.Core\BlazoriseQuartz.Core.csproj" />
+		<ProjectReference Include="..\BlazoriseQuartz.Core.Data\BlazoriseQuartz.Core.Data.csproj" />
+		<ProjectReference Include="..\BlazoriseQuartz.Jobs.Abstractions\BlazoriseQuartz.Jobs.Abstractions.csproj" />
+		<ProjectReference Include="..\BlazoriseQuartz.Jobs\BlazoriseQuartz.Jobs.csproj" />
+	</ItemGroup>
+</Project>

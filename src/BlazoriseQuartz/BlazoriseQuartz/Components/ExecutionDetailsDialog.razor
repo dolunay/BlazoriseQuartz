@@ -1,0 +1,92 @@
+<Form>
+    <ModalBody>
+        <div class="d-flex flex-column gap-2">
+            <Field>
+                <FieldLabel>@(ExecutionLog.FireTimeUtc.HasValue ? "Trigger time" : "Log time")</FieldLabel>
+                <FieldBody>
+                    <TextEdit ReadOnly="true"
+                              Margin="Margin.Is0"
+                              Text="@(ExecutionLog.FireTimeUtc?.LocalDateTime.ToString() ?? ExecutionLog.DateAddedUtc.LocalDateTime.ToString())" />
+                </FieldBody>
+            </Field>
+
+            @if (ExecutionLog.ReturnCode != null)
+            {
+                <Field>
+                    <FieldLabel>Return Code</FieldLabel>
+                    <FieldBody>
+                        <MemoEdit ReadOnly="true"
+                                  Margin="Margin.Is0"
+                                  Text="@ExecutionLog.ReturnCode" />
+                    </FieldBody>
+                </Field>
+            }
+
+            @if (ExecutionLog.Result != null)
+            {
+                <Field>
+                    <FieldLabel>Result</FieldLabel>
+                    <FieldBody>
+                        <MemoEdit ReadOnly="true"
+                                  Margin="Margin.Is0"
+                                  Text="@ExecutionLog.Result" Rows="5" />
+                    </FieldBody>
+                </Field>
+            }
+
+            @if (ExecutionLog.ExecutionLogDetail?.ExecutionDetails != null)
+            {
+                <Field>
+                    <FieldLabel>Output</FieldLabel>
+                    <FieldBody>
+                        <MemoEdit ReadOnly="true"
+                                  Margin="Margin.Is0"
+                                  Text="@ExecutionLog.ExecutionLogDetail.ExecutionDetails" Rows="5" />
+                    </FieldBody>
+                </Field>
+            }
+
+            @if (ExecutionLog.ErrorMessage != null)
+            {
+                <Field>
+                    <FieldLabel>Exception Message</FieldLabel>
+                    <FieldBody>
+                        <MemoEdit ReadOnly="true"
+                                  Margin="Margin.Is0"
+                                  Text="@ExecutionLog.ErrorMessage" />
+                    </FieldBody>
+                </Field>
+            }
+            @if (ExecutionLog.ExecutionLogDetail?.ErrorStackTrace != null)
+            {
+                <Field>
+                    <FieldLabel>Stack Trace</FieldLabel>
+                    <FieldBody>
+                        <MemoEdit ReadOnly="true"
+                                  Margin="Margin.Is0"
+                                  Text="@ExecutionLog.ExecutionLogDetail.ErrorStackTrace" Rows="6" />
+                    </FieldBody>
+                </Field>
+            }
+            @if (ExecutionLog.ExecutionLogDetail?.ErrorCode != null)
+            {
+                <div>
+                    <Text TextColor="TextColor.Warning">
+                        @(ExecutionLog.ExecutionLogDetail.ErrorCode + " " + ExecutionLog.ExecutionLogDetail.ErrorHelpLink)
+                    </Text>
+                </div>
+            }
+            else if (ExecutionLog.ExecutionLogDetail?.ErrorHelpLink != null)
+            {
+                <div>
+                    <Text TextColor="TextColor.Warning">
+                        @ExecutionLog.ExecutionLogDetail.ErrorHelpLink
+                    </Text>
+                </div>
+            }
+        </div>
+    </ModalBody>
+    <ModalFooter>
+        <Button Clicked="Close">Close</Button>
+    </ModalFooter>
+</Form>

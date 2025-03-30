@@ -17,14 +17,14 @@ jobs:
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: | 
-          7.0.x
           8.0.x
+          9.0.x
     - name: Restore dependencies
       run: dotnet restore
-      working-directory: src/BlazingQuartz
+      working-directory: src/BlazoriseQuartz
     - name: Build
       run: dotnet build --no-restore
-      working-directory: src/BlazingQuartz
+      working-directory: src/BlazoriseQuartz
     - name: Test
       run: dotnet test --no-build --verbosity normal
-      working-directory: src/BlazingQuartz
+      working-directory: src/BlazoriseQuartz

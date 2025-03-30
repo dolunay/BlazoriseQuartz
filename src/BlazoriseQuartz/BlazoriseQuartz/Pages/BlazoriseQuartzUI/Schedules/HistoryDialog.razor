@@ -1,0 +1,96 @@
+<ModalHeader>
+        <Heading Size="HeadingSize.Is5">Execution History</Heading>
+        <Button Clicked="OnRefreshHistory">
+            <Icon Name="@MaterialIcons.Refresh" />
+        </Button>
+</ModalHeader>
+<ModalBody>
+    <Container Style="max-height: 300px; overflow-y: scroll">
+        <Timeline TimelinePosition="TimelinePosition.Start" TimelineAlign="TimelineAlign.Start">
+            @{
+                DateTimeOffset? lastDate = null;
+                foreach (var log in ExecutionLogs)
+                {
+                    if (lastDate == null || lastDate.Value.Date != (log.FireTimeUtc?.Date ?? log.DateAddedUtc.Date))
+                    {
+                        lastDate = log.FireTimeUtc?.Date ?? log.DateAddedUtc.Date;
+                        <TimelineItem Color="Color.Primary" Size="Size.Medium">
+                            <Text TextColor="TextColor.Muted">
+                                @lastDate.Value.Date.ToLongDateString()
+                            </Text>
+                        </TimelineItem>
+                    }
+
+                    var finishTimeUtc = log.GetFinishTimeUtc();
+                    @if (log.IsException ?? false)
+                    {
+                        <TimelineItem Color="Color.Secondary"
+                                      TimelineAlign="TimelineAlign.End">
+                            <ItemDot>
+                                <Icon IconSize="IconSize.Default" TextColor="TextColor.Danger" Name="@MaterialIcons.Error" />
+                            </ItemDot>
+                            <ItemContent>
+                                <Text TextColor="TextColor.Muted">
+                                    @GetExecutionTime(log)
+                                    @if (log.JobRunTime.HasValue)
+                                    {
+                                        <span class="pl-1" style="text-transform: none;">
+                                            (@log.JobRunTime.Value.ToHumanTimeString(4))
+                                        </span>
+                                    }
+                                </Text>
+                                <Text TextColor="TextColor.Body">@log.GetShortExceptionMessage()</Text>
+                                <Button Class="pa-0 ma-0"
+                                        Style="text-transform:none;"
+                                        Clicked="@(async () => await OnMoreDetails(log, "Error Details"))"
+                                        Color="Color.Primary">
+                                    Error Details
+                                </Button>
+                            </ItemContent>
+                        </TimelineItem>
+                    }
+                    else
+                    {
+                        <TimelineItem Color="@GetTimelineDotColor(log)"
+                                      TimelineAlign="TimelineAlign.End">
+                            <Text TextColor="TextColor.Muted">
+                                @GetExecutionTime(log)
+                                @if (log.JobRunTime.HasValue)
+                                {
+                                    <span class="pl-1" style="text-transform: none;">
+                                        (@log.JobRunTime.Value.ToHumanTimeString(4))
+                                    </span>
+                                }
+                            </Text>
+                            <Text TextColor="TextColor.Body">
+                                @log.GetShortResultMessage()
+                            </Text>
+                            @if (log.ShowExecutionDetailButton())
+                            {
+                                <Button Class="pa-0 ma-0"
+                                        Style="text-transform:none;"
+                                        Clicked="@(async () => await OnMoreDetails(log, "Execution Details"))"
+                                        Color="Color.Primary">
+                                    Execution Details
+                                </Button>
+                            }
+                        </TimelineItem>
+                    }
+                }
+            }
+            @if (HasMore)
+            {
+                <TimelineItem TimelineAlign="TimelineAlign.End">
+                    <Button Style="text-transform:none;"
+                            Clicked="GetMoreLogs"
+                            Color="Color.Primary">
+                        Load More
+                    </Button>
+                </TimelineItem>
+            }
+        </Timeline>
+    </Container>
+</ModalBody>
+<ModalFooter>
+    <Button Clicked="Close">Close</Button>
+</ModalFooter>

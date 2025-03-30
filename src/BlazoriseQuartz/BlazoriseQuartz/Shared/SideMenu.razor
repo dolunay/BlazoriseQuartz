@@ -1,0 +1,36 @@
+﻿<Bar Breakpoint="Breakpoint.Desktop" NavigationBreakpoint="Breakpoint.Tablet" ThemeContrast="ThemeContrast.Dark"
+     Mode="BarMode.VerticalInline" CollapseMode="BarCollapseMode.Small" MenuToggleBehavior=BarMenuToggleBehavior.AllowSingleMenu>
+    <BarToggler />
+    <BarBrand>
+        <BarItem>
+            <BarLink To="">
+                <BarIcon IconName="customIcon" />
+                BlazoriseQuartz
+            </BarLink>
+        </BarItem>
+    </BarBrand>
+    <BarMenu>
+        <BarStart>
+            <BarItem>
+                <BarLink To="overview">Overview</BarLink>
+            </BarItem>
+            <BarItem>
+                <BarLink To="schedules">Schedules</BarLink>
+            </BarItem>
+            <BarItem>
+                <BarLink To="history">History</BarLink>
+            </BarItem>
+        </BarStart>
+        <BarEnd>
+        </BarEnd>
+    </BarMenu>
+</Bar>
+@code {
+    private bool uiElementsVisible = true;
+    private bool utilitiesVisible = false;
+    private bool extensionsVisible = false;
+    private bool formsVisible = false;
+    private bool datagridVisible = false;
+
+    RenderFragment customIcon =@<img src="/logo.png" style="width:32px; height: 32px" />;
+}

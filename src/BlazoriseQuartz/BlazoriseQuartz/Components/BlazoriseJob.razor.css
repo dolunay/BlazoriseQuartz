@@ -1,0 +1,1 @@
+.jobform{height:65vh;max-height:630px;overflow-y:auto;overflow-x:hidden;padding-top:4px;padding-left:12px;padding-right:12px}.jobform__2col{display:grid;grid-template-columns:1fr 1fr;column-gap:8px}.datamap-container{display:grid;grid-template-columns:2fr 3fr 1fr 80px}@media(max-width: 600px){.jobform__2col{display:grid;grid-template-columns:1fr;row-gap:6px}}

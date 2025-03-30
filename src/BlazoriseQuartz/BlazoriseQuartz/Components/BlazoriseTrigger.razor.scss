@@ -1,0 +1,32 @@
+@import '../wwwroot/css/variables';
+
+.triggerform {
+    display: grid;
+    grid-template-columns: 1fr;
+    column-gap: 8px;
+    row-gap: 6px;
+    height:65vh;
+    max-height: 630px;
+    overflow-y: auto; 
+    overflow-x: hidden;
+    padding-top: 16px;
+    padding-left: 12px;
+    padding-right: 12px;
+    align-content: start;
+
+    &__2col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        column-gap: 8px;
+    }
+}
+
+@media (max-width:$breakpoint-sm) {
+    .triggerform {    
+        &__2col {
+            display: grid;
+            grid-template-columns: 1fr;
+            row-gap: 6px;
+        }
+    }
+}

@@ -1,0 +1,458 @@
+﻿@using Blazorise.Components
+@using Microsoft.AspNetCore.Mvc.Rendering
+<EnumSwitch T="TriggerType" ExcludedValues="ExcludedTriggerTypeChoices"
+            @bind-Value="TriggerDetail.TriggerType"
+            ValueIcons="TriggerTypeIcons" />
+<Form Class="triggerForm">
+    <Validations @ref="_validations" Mode="ValidationMode.Auto" Model="@TriggerDetail" StatusChanged="@OnSetValidationStatusChanged">
+        <Card>
+            <CardBody>
+                <Grid>
+                    <Column ColumnSize="ColumnSize.Is6">
+                        <Validation AsyncValidator="(e,c)=> Validator.ValidateTriggerName(e, TriggerDetail, OriginalTriggerKey)">
+                            <Field>
+                                <FieldLabel RequiredIndicator="true">Trigger Name</FieldLabel>
+                                <FieldBody>
+                                    <TextEdit @bind-Value="TriggerDetail.Name"
+                                              Immediate="true" />
+                                </FieldBody>
+                            </Field>
+                        </Validation>
+                    </Column>
+
+                    <Column ColumnSize="ColumnSize.Is6">
+                        <Field>
+                            <FieldLabel RequiredIndicator="true">Trigger Group</FieldLabel>
+                            <FieldBody>
+                                <Autocomplete TItem="SelectListItem"
+                                              TValue="string"
+                                              Data="@ExistingTriggerGroups"
+                                              ReadData="@GetTriggerGroups"
+                                              TextField="((item) => item.Text)"
+                                              ValueField="((item) => item.Value)"
+                                              @bind-SelectedValue="@TriggerDetail.Group"
+                                              Placeholder="Search..."
+                                              Filter="AutocompleteFilter.Contains"
+                                              FreeTyping>
+                                    <NotFoundContent> Sorry... @context was not found! :( </NotFoundContent>
+                                </Autocomplete>
+                            </FieldBody>
+                        </Field>
+                    </Column>
+
+                    @if (TriggerDetail.TriggerType == TriggerType.Cron)
+                    {
+                        <Column ColumnSize="ColumnSize.Is6">
+                            <Validation Validator="Validator.ValidateCronExpression">
+                                <Field>
+                                    <FieldLabel RequiredIndicator="true">Cron Expression</FieldLabel>
+                                    <FieldBody>
+                                        <Addons>
+                                            <Addon AddonType="AddonType.Body">
+                                                <TextEdit DebounceInterval="500"
+                                                          TextChanged="OnCronExpressionInputElapsed"
+                                                          Text="@TriggerDetail.CronExpression">
+                                                    <Feedback>
+                                                        <ValidationSuccess>@CronDescription</ValidationSuccess>
+                                                        <ValidationError />
+                                                    </Feedback>
+                                                </TextEdit>
+                                            </Addon>
+                                            <Addon AddonType="AddonType.End">
+                                                <Button Clicked="OnShowSampleCron">
+                                                    <Tooltip Text="Select Cron Expression">
+                                                        <Icon Name="@MaterialIcons.QuestionMark"></Icon>
+                                                    </Tooltip>
+                                                </Button>
+                                            </Addon>
+                                        </Addons>
+                                    </FieldBody>
+                                </Field>
+                            </Validation>
+                        </Column>
+                        <Column ColumnSize="ColumnSize.Is6">
+                            <Field>
+                                <FieldLabel RequiredIndicator="true">Timezone</FieldLabel>
+                                <FieldBody>
+                                    <Autocomplete TItem="TimeZoneInfo"
+                                                  TValue="TimeZoneInfo"
+                                                  Data="@_timeZones"
+                                                  TextField="((item) => item.DisplayName)"
+                                                  ValueField="((item) => item)"
+                                                  @bind-SelectedValue="@TriggerDetail.InTimeZone"
+                                                  Placeholder="Search..."
+                                                  Filter="AutocompleteFilter.Contains"
+                                                  >
+                                        <NotFoundContent> Sorry... @context was not found! :( </NotFoundContent>
+                                        <ItemContent>
+                                            <Paragraph Margin="Margin.Is2.FromBottom">@context.Text</Paragraph>
+                                        </ItemContent>
+                                    </Autocomplete>
+                                </FieldBody>
+                            </Field>
+                        </Column>
+                    }
+                    else
+                    {
+                        if (TriggerDetail.TriggerType == TriggerType.Daily)
+                        {
+                            @* Daily Trigger *@
+                            <Column ColumnSize="ColumnSize.Is6">
+                                <Validation Validator="ValidationRule.IsEmpty">
+                                    <Field>
+                                        <FieldLabel RequiredIndicator="true">Daily Run Time</FieldLabel>
+                                        <FieldBody>
+                                            <TimePicker TimeAs24hr="true"
+                                                        Time="TriggerDetail.StartDailyTime" />
+                                        </FieldBody>
+                                    </Field>
+                                </Validation>
+
+                                <Validation Validator="((e) => Validator.ValidateTime(TriggerDetail.StartDailyTime, e))">
+                                    <Field>
+                                        <FieldLabel>Daily Last Run Time</FieldLabel>
+                                        <FieldBody>
+                                            <TimePicker TValue="TimeSpan?" TimeAs24hr="true"
+                                                        @ref="_endDailyTimePicker"
+                                                        @bind-Time="TriggerDetail.EndDailyTime">
+                                                <Feedback>
+                                                    <ValidationError>End time should be later than start time</ValidationError>
+                                                </Feedback>
+                                            </TimePicker>
+                                        </FieldBody>
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <FieldLabel RequiredIndicator="true">Timezone</FieldLabel>
+                                    <FieldBody>
+                                        <Autocomplete TItem="TimeZoneInfo"
+                                                      TValue="TimeZoneInfo"
+                                                      Data="@_timeZones"
+                                                      TextField="((item) => item.DisplayName)"
+                                                      ValueField="((item) => item)"
+                                                      @bind-SelectedValue="@TriggerDetail.InTimeZone"
+                                                      Placeholder="Search..."
+                                                      Filter="AutocompleteFilter.Contains"
+                                                      >
+                                            <NotFoundContent> Sorry... @context was not found! :( </NotFoundContent>
+                                            <ItemContent>
+                                                <Paragraph Margin="Margin.Is2.FromBottom">@context.Text</Paragraph>
+                                            </ItemContent>
+                                        </Autocomplete>
+                                    </FieldBody>
+                                </Field>
+                            </Column>
+                            <Column ColumnSize="ColumnSize.Is6">
+                                <Validation Validator="DailyDayOfWeekValidation">
+                                    <Field>
+                                        <FieldLabel RequiredIndicator="true">Day of Week</FieldLabel>
+                                        <FieldBody>
+                                            <Check TValue="bool" @bind-Checked="TriggerDetail.DailyDayOfWeek[(int)DayOfWeek.Monday]">@(DayOfWeek.Monday.ToString())</Check><br />
+                                            <Check TValue="bool" @bind-Checked="TriggerDetail.DailyDayOfWeek[(int)DayOfWeek.Tuesday]">@(DayOfWeek.Tuesday.ToString())</Check><br />
+                                            <Check TValue="bool" @bind-Checked="TriggerDetail.DailyDayOfWeek[(int)DayOfWeek.Wednesday]">@(DayOfWeek.Wednesday.ToString())</Check><br />
+                                            <Check TValue="bool" @bind-Checked="TriggerDetail.DailyDayOfWeek[(int)DayOfWeek.Thursday]">@(DayOfWeek.Thursday.ToString())</Check><br />
+                                            <Check TValue="bool" @bind-Checked="TriggerDetail.DailyDayOfWeek[(int)DayOfWeek.Friday]">@(DayOfWeek.Friday.ToString())</Check><br />
+                                            <Check TValue="bool" @bind-Checked="TriggerDetail.DailyDayOfWeek[(int)DayOfWeek.Saturday]">@(DayOfWeek.Saturday.ToString())</Check><br />
+                                            <Check TValue="bool" @bind-Checked="TriggerDetail.DailyDayOfWeek[(int)DayOfWeek.Sunday]">@(DayOfWeek.Sunday.ToString())</Check><br />
+                                        </FieldBody>
+                                        <FieldHelp>Select days to trigger this job</FieldHelp>
+                                    </Field>
+                                </Validation>
+                            </Column>
+                        }
+                        else if (TriggerDetail.TriggerType == TriggerType.Calendar)
+                        {
+                            <Column ColumnSize="ColumnSize.Is6">
+                                <Field>
+                                    <FieldLabel RequiredIndicator="true">Calendar</FieldLabel>
+                                    <FieldBody>
+                                        <Autocomplete TItem="SelectListItem"
+                                                      TValue="string"
+                                                      Data="@_calendars"
+                                                      ReadData="@GetCalendars"
+                                                      TextField="((item) => item.Text)"
+                                                      ValueField="((item) => item.Value)"
+                                                      @bind-SelectedValue="@TriggerDetail.ModifiedByCalendar"
+                                                      Placeholder="Search..."
+                                                      Filter="AutocompleteFilter.Contains"
+                                                      FreeTyping>
+                                            <NotFoundContent> Sorry... @context was not found! :( </NotFoundContent>
+                                        </Autocomplete>
+                                    </FieldBody>
+                                </Field>
+                                <Tooltip Text="TODO: Coming Soon... Create Calendar">
+                                    <Button Size="Size.Medium"><Icon Name="@MaterialIcons.Add"></Icon></Button>
+                                </Tooltip>
+                            </Column>
+                            <Column ColumnSize="ColumnSize.Is6">
+                                <Field>
+                                    <FieldLabel RequiredIndicator="true">Timezone</FieldLabel>
+                                    <FieldBody>
+                                        <Autocomplete TItem="TimeZoneInfo"
+                                                      TValue="TimeZoneInfo"
+                                                      Data="@_timeZones"
+                                                      TextField="((item) => item.DisplayName)"
+                                                      ValueField="((item) => item)"
+                                                      @bind-SelectedValue="@TriggerDetail.InTimeZone"
+                                                      Placeholder="Search..."
+                                                      Filter="AutocompleteFilter.Contains"
+                                                      >
+                                            <NotFoundContent> Sorry... @context was not found! :( </NotFoundContent>
+                                            <ItemContent>
+                                                <Paragraph Margin="Margin.Is2.FromBottom">@context.Text</Paragraph>
+                                            </ItemContent>
+                                        </Autocomplete>
+                                    </FieldBody>
+                                </Field>
+                            </Column>
+                        }
+
+                        @* Simple Trigger/Daily Trigger *@
+                        <Column ColumnSize="ColumnSize.Is6">
+                            <Field>
+                                <FieldLabel RequiredIndicator="@(TriggerDetail.TriggerType == TriggerType.Simple || TriggerDetail.TriggerType == TriggerType.Calendar)">Repeat Interval</FieldLabel>
+                                <FieldBody>
+                                    <NumericEdit @bind-Value="TriggerDetail.TriggerInterval"
+                                                 Min="1" Step="1">
+                                    </NumericEdit>
+                                </FieldBody>
+                            </Field>
+
+                            <Validation Validator="@ValidationRule.IsSelected">
+                                <Field>
+                                    <FieldLabel RequiredIndicator="@(TriggerDetail.TriggerType == TriggerType.Simple || TriggerDetail.TriggerType == TriggerType.Calendar)">Unit</FieldLabel>
+                                    <FieldBody>
+                                        <Select TValue="IntervalUnit?"
+                                                @bind-SelectedValue="@TriggerDetail.TriggerIntervalUnit">
+                                            <ChildContent>
+                                                @foreach (var unit in SchedulerDefSvc.GetTriggerIntervalUnits(TriggerDetail.TriggerType))
+                                                {
+                                                    <SelectItem TValue="IntervalUnit?" Value="unit">@unit.ToString()</SelectItem>
+                                                }
+                                            </ChildContent>
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </Select>
+                                    </FieldBody>
+                                </Field>
+                            </Validation>
+                        </Column>
+                        if (TriggerDetail.TriggerType == TriggerType.Simple)
+                        {
+                            <Column ColumnSize="ColumnSize.Is6">
+                                <Field>
+                                    <FieldLabel>Repeat Count</FieldLabel>
+                                    <FieldBody>
+                                        <NumericEdit @bind-Value="TriggerDetail.RepeatCount"
+                                                     Min="0"
+                                                     Disabled="TriggerDetail.RepeatForever"
+                                                     Step="1">
+                                        </NumericEdit>
+                                    </FieldBody>
+                                </Field>
+                                <Check TValue="bool" @bind-Checked="TriggerDetail.RepeatForever">Repeat Forever</Check>
+                            </Column>
+                        }
+                    }
+
+                    <Column ColumnSize="ColumnSize.Is6">
+                        <Field>
+                            <FieldLabel>Start Date</FieldLabel>
+                            <FieldBody>
+                                <DatePicker Date="TriggerDetail.StartDate" StaticPicker="false" />
+                            </FieldBody>
+                        </Field>
+                        <Field>
+                            <FieldLabel>Start Time</FieldLabel>
+                            <FieldBody>
+                                <TimePicker TimeAs24hr="true" Time="TriggerDetail.StartTimeSpan" StaticPicker="false" />
+                            </FieldBody>
+                        </Field>
+                    </Column>
+
+                    <Column ColumnSize="ColumnSize.Is6">
+                        <Validation Validator="@((e) => Validator.ValidateFirstLastDateTime(TriggerDetail,e))">
+                            <Field>
+                                <FieldLabel>End Date</FieldLabel>
+                                <FieldBody>
+                                    <DatePicker TValue="DateTime?" StaticPicker="false"
+                                                @ref="_endDatePicker"
+                                                @bind-Date="TriggerDetail.EndDate">
+                                        <Feedback>
+                                            <ValidationError>End date should be later than start date</ValidationError>
+                                        </Feedback>
+                                    </DatePicker>
+                                </FieldBody>
+                            </Field>
+                        </Validation>
+                        <Validation Validator="@((e) => Validator.ValidateFirstLastDateTime(TriggerDetail,e))">
+                            <Field>
+                                <FieldLabel>End Time</FieldLabel>
+                                <FieldBody>
+                                    <TimePicker TValue="TimeSpan?" TimeAs24hr="true" StaticPicker="false"
+                                                @bind-Time="TriggerDetail.EndTimeSpan">
+                                        <Feedback>
+                                            <ValidationError>End time should be later than start time</ValidationError>
+                                        </Feedback>
+                                    </TimePicker>
+                                </FieldBody>
+                            </Field>
+                        </Validation>
+                    </Column>
+
+                    @if (TriggerDetail.TriggerType != TriggerType.Calendar)
+                    {
+                        <Column ColumnSize="ColumnSize.Is6">
+                            <Validation Validator="@ValidationRule.IsSelected">
+                                <Field>
+                                    <FieldLabel RequiredIndicator="true">Start & End Time Timezone</FieldLabel>
+                                    <FieldBody>
+                                        <Select TValue="TimeZoneInfo" @bind-SelectedValue="TriggerDetail.StartTimezone">
+                                            <ChildContent>
+                                                <SelectItem TValue="TimeZoneInfo" Value="@(TimeZoneInfo.Utc)">@TimeZoneInfo.Utc.DisplayName</SelectItem>
+                                                @if (!TimeZoneInfo.Utc.Equals(TimeZoneInfo.Local))
+                                                {
+                                                    <SelectItem TValue="TimeZoneInfo" Value="@(TimeZoneInfo.Local)">@TimeZoneInfo.Local.DisplayName</SelectItem>
+                                                }
+                                            </ChildContent>
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </Select>
+                                    </FieldBody>
+                                </Field>
+                            </Validation>
+                        </Column>
+
+                        <Column ColumnSize="ColumnSize.Is6">
+                            <Field>
+                                <FieldLabel>Calendar</FieldLabel>
+                                <FieldBody>
+                                    <Autocomplete TItem="SelectListItem"
+                                                  TValue="string"
+                                                  Data="@_calendars"
+                                                  ReadData="@GetCalendars"
+                                                  TextField="((item) => item.Text)"
+                                                  ValueField="((item) => item.Value)"
+                                                  @bind-SelectedValue="@TriggerDetail.ModifiedByCalendar"
+                                                  Placeholder="Search..."
+                                                  Filter="AutocompleteFilter.Contains"
+                                                  FreeTyping>
+                                        <NotFoundContent> Sorry... @context was not found! :( </NotFoundContent>
+                                    </Autocomplete>
+                                </FieldBody>
+                            </Field>
+
+                            <Button Size="Size.Medium"
+                                    title="Create Calendar">
+                                <Icon Name="@MaterialIcons.Add"></Icon>
+                            </Button>
+                        </Column>
+                    }
+
+                    <Column ColumnSize="ColumnSize.Is6">
+                        <Field>
+                            <FieldLabel>Priority</FieldLabel>
+                            <FieldBody>
+                                <NumericEdit TValue="int" @bind-Value="TriggerDetail.Priority"
+                                             Placeholder="Larger value has higher priority"
+                                             Step="1" />
+                            </FieldBody>
+                        </Field>
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is6">
+                        <Validation Validator="@ValidationRule.IsSelected">
+                            <Field>
+                                <FieldLabel>Misfire Instruction</FieldLabel>
+                                <FieldBody>
+                                    <Select TValue="MisfireAction"
+                                            @bind-SelectedValue="@TriggerDetail.MisfireAction">
+                                        <ChildContent>
+                                            @foreach (var action in SchedulerDefSvc.GetMisfireActions(TriggerDetail.TriggerType))
+                                            {
+                                                <SelectItem TValue="MisfireAction" Value="action">@action.ToString()</SelectItem>
+                                            }
+                                        </ChildContent>
+                                        <Feedback>
+                                            <ValidationError />
+                                        </Feedback>
+                                    </Select>
+                                </FieldBody>
+                            </Field>
+                        </Validation>
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is6">
+                        <Field>
+                            <FieldLabel>Description</FieldLabel>
+                            <FieldBody>
+                                <MemoEdit @bind-Text="TriggerDetail.Description"
+                                          Rows="2"
+                                          Immediate="true" />
+                            </FieldBody>
+                        </Field>
+                    </Column>
+                </Grid>
+            </CardBody>
+            <CardFooter>
+                <Bar Breakpoint="Breakpoint.Desktop" Background="Background.Light" Shadow="Shadow.Remove" ThemeContrast="ThemeContrast.Light">
+                    <BarBrand>
+                        <Heading Size="HeadingSize.Is6">Job Data Map</Heading>
+                    </BarBrand>
+                    <BarStart>
+                    </BarStart>
+                    <BarEnd>
+                        <Button Color="Color.Primary"
+                                Clicked="@OnAddDataMap">
+                            <Icon Name="@MaterialIcons.Add" />Add
+                        </Button>
+                    </BarEnd>
+                </Bar>
+                <Card>
+                    <CardBody>
+                        <Table Hoverable="true" Narrow="true"
+                               Striped="true" Borderless="true"
+                               FixedHeader="true" Style="max-height: 180px; overflow: auto;">
+                            <colgroup>
+                                <col />
+                                <col />
+                                <col style="width: 200px;" />
+                                <col style="width: 60px;" />
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>Key</th>
+                                    <th>Value</th>
+                                    <th>Type</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var row in TriggerDetail.TriggerDataMap)
+                                {
+                                    <tr>
+                                        <td>@row.Key</td>
+                                        <td>@row.Value.ToString()</td>
+                                        <td>@row.GetDataMapTypeDescription()</td>
+                                        <td class="d-flex">
+                                            <Button Size="Size.Small" Clicked="() => OnEditDataMap(row)" title="Edit">
+                                                <Icon Name="@MaterialIcons.Edit" />
+                                            </Button>
+                                            <Button Size="Size.Small" Clicked="() => OnCloneDataMap(row)" title="Copy">
+                                                <Icon Name="@MaterialIcons.ContentCopy" />
+                                            </Button>
+                                            <Button Size="Size.Small" Clicked="() => OnDeleteDataMap(row)" title="Delete">
+                                                <Icon Name="@MaterialIcons.Delete" />
+                                            </Button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </Table>
+                    </CardBody>
+                </Card>
+            </CardFooter>
+        </Card>
+    </Validations>
+</Form>

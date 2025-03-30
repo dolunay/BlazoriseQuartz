@@ -1,13 +1,18 @@
-# BlazingQuartz
-BlazingQuartz is an easy to use [Blazor](https://blazor.net) web UI to manage [Quartz.NET](https://github.com/quartznet/quartznet) scheduler jobs.
+# BlazoriseQuartz
+BlazoriseQuartz is an easy to use [Blazor](https://blazor.net) web UI to manage [Quartz.NET](https://github.com/quartznet/quartznet) scheduler jobs.
 
-BlazingQuartz is created with [ASP.NET Core Blazor Server](https://blazor.net) and use [MudBlazor](https://mudblazor.com) component library.
+BlazoriseQuartz is created with [ASP.NET Core Blazor Server](https://blazor.net) and use [Blazorise](https://blazorise.com) component library.
 
 ![Overview page](img/overview.png)
+![Schedules page](img/schedules.png)
+![History page](img/history.png)
+![Execution History page](img/execution-history.png)
+![Edit Schedule Job Details](img/edit-schedule-job-details.png)
+![Error Details](img/error-details.png)
 
 ## Requirements
-* .NET 8
-* Quartz 3.8.1+
+* .NET 9
+* Quartz 3.14.0+
 
 ## Features
 * Add, modify jobs and triggers
@@ -29,32 +34,32 @@ BlazingQuartz is created with [ASP.NET Core Blazor Server](https://blazor.net) a
 ## Quick Start
 ### Using Docker
 1. Create the following folders:
-   * <blazingquartz_path>
-   * <blazingquartz_path>/logs
-   * <blazingquartz_path>/certs
+   * <blazorisequartz_path>
+   * <blazorisequartz_path>/logs
+   * <blazorisequartz_path>/certs
 
-2. Copy [BlazingQuartzDb.db](../main/src/BlazingQuartz/BlazingQuartzApp/BlazingQuartzDb.db) to <blazingquartz_path>
+2. Copy [BlazoriseQuartzDb.db](../dev/src/BlazoriseQuartz/BlazoriseQuartzApp/BlazoriseQuartzDb.db) to <blazorisequartz_path>
 
 3. Run below docker command:
     ```
     docker run -d \
-    --name=BlazingQuartzApp \
+    --name=BlazoriseQuartzApp \
     -e TZ=<your_timezone> \
     -e ASPNETCORE_HTTP_PORTS=8080 \
-    -v /<blazingquartz_path>/BlazingQuartzDb.db:/app/BlazingQuartzDb.db \
-    -v /<blazingquartz_path>/logs:/app/logs \
-    -v /<blazingquartz_path>/certs:/app/certs \
+    -v /<blazorisequartz_path>/BlazoriseQuartzDb.db:/app/BlazoriseQuartzDb.db \
+    -v /<blazorisequartz_path>/logs:/app/logs \
+    -v /<blazorisequartz_path>/certs:/app/certs \
     -p 9090:8080 \
-    wilchn/blazingquartzapp:latest
+    wilchn/blazorisequartzapp:latest
     ```
     Note: Replace the following:
-    - `<blazingquartz_path>`
+    - `<blazorisequartz_path>`
     - `<your_timezone>` - See list of [acceptable values](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones). Ex. Asia/Singapore 
 4. Navigate to http://localhost:9090
 
 ## Configuration
 ### Enable HTTPS
-To support https, you will need SSL certificate. Put the SSL certificate file to `<blazingquartz_path>/certs`.
+To support https, you will need SSL certificate. Put the SSL certificate file to `<blazorisequartz_path>/certs`.
 Then add the following lines to appsettings.json:
 ```json
   "Kestrel": {
@@ -75,19 +80,19 @@ docker run -d \
 -p 9090:8080 \
 -p 9091:8081 \
 -e ASPNETCORE_HTTPS_PORTS=8081 \
-wilchn/blazingquartzapp:latest
+wilchn/blazorisequartzapp:latest
 ```
 ### Use other database
 Below steps shows you how to use PostgreSQL database to store execution logs. 
 
 NOTE: Below steps assume that you already created the database and have imported the [DB tables used by Quartz](https://github.com/quartznet/quartznet/tree/main/database/tables). For more info, refer to [configure ADO.NET JobStore](https://www.quartz-scheduler.net/documentation/quartz-3.x/tutorial/job-stores.html#ado-net-job-store-adojobstore). 
 
-1. Copy [appsettings.json](../main/src/BlazingQuartz/BlazingQuartzApp/appsettings.json) to <blazingquartz_path>
+1. Copy [appsettings.json](../dev/src/BlazoriseQuartz/BlazoriseQuartzApp/appsettings.json) to <blazorisequartz_path>
 2. Modify appsettings.json
    From
    ```
    "ConnectionStrings": {
-     "BlazingQuartzDb": "DataSource=BlazingQuartzDb.db;Cache=Shared"
+     "BlazoriseQuartzDb": "DataSource=BlazoriseQuartzDb.db;Cache=Shared"
    },
    "Quartz": {
      ...
@@ -95,13 +100,13 @@ NOTE: Below steps assume that you already created the database and have imported
      ...
      "quartz.dataSource.myDS.provider": "SQLite-Microsoft"
    },
-   "BlazingQuartz": {
+   "BlazoriseQuartz": {
      "DataStoreProvider": "Sqlite",
    ```
    To
    ```
    "ConnectionStrings": {
-     "BlazingQuartzDb": "Host=<db_host>;Port=5432;Database=<db_name>;Username=<db_user>;Password=<db_password>"
+     "BlazoriseQuartzDb": "Host=<db_host>;Port=5432;Database=<db_name>;Username=<db_user>;Password=<db_password>"
    },
    "Quartz": {
      ...
@@ -109,7 +114,7 @@ NOTE: Below steps assume that you already created the database and have imported
      ...
      "quartz.dataSource.myDS.provider": "Npgsql"
    },
-   "BlazingQuartz": {
+   "BlazoriseQuartz": {
      "DataStoreProvider": "PostgreSQL",
    ```
    NOTE: Replace below with actual database value:
@@ -122,15 +127,15 @@ NOTE: Below steps assume that you already created the database and have imported
 3. Configure the docker container to mount appsettings.json volume. Example docker command:
    ```
     docker run -d \
-    --name=BlazingQuartzApp \
+    --name=BlazoriseQuartzApp \
     -e TZ=<your_timezone>
-    -v /<blazingquartz_path>/appsettings.json:/app/appsettings.json \
-    -v /<blazingquartz_path>/logs:/app/logs \
-    -v /<blazingquartz_path>/certs:/app/certs \
+    -v /<blazorisequartz_path>/appsettings.json:/app/appsettings.json \
+    -v /<blazorisequartz_path>/logs:/app/logs \
+    -v /<blazorisequartz_path>/certs:/app/certs \
     -p 9090:80 \
-    wilchn/blazingquartzapp:latest
+    wilchn/blazorisequartzapp:latest
    ```
-   NOTE: Replace <blazingquartz_path> and <your_timezone>
+   NOTE: Replace <blazorisequartz_path> and <your_timezone>
 
 
 ## Advance Details

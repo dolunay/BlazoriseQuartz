@@ -1,0 +1,21 @@
+﻿<Field>
+    <FieldLabel>Message</FieldLabel>
+    <FieldBody>
+        <TextEdit Text="@DataMapMessage.Value"
+                  TextChanged="OnMessageChanged"
+                  DebounceInterval="500"
+                  Margin="Margin.Is0"
+                  ReadOnly="IsReadOnly" />
+        <FieldHelp>This field support dynamic variables. Try {{$datetime iso8601}}</FieldHelp>
+    </FieldBody>
+</Field>
+
+<Text TextSize="TextSize.Medium">Output: @ResolvedMessage</Text>
+<Field>
+    <FieldLabel>Delay (in ms)</FieldLabel>
+    <FieldBody>
+        <NumericEdit @bind-Value="DelayInMs"
+                     Margin="Margin.Is0"
+                     Step="1" />
+    </FieldBody>
+</Field>
