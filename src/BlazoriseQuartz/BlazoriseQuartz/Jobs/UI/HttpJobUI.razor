@@ -1,0 +1,84 @@
+<div class="httpjobform">
+    <Validations>
+        <Validation Validator="@ValidationRule.IsSelected">
+            <Field>
+                <FieldLabel RequiredIndicator>HTTP Request Method</FieldLabel>
+                <Select TValue="string"
+                        ReadOnly="IsReadOnly"
+                        @bind-SelectedValue="HttpAction"
+                        Margin="Margin.Is0">
+                    <ChildContent>
+                        <SelectItem TValue="string" Value="@("Get")">GET</SelectItem>
+                        <SelectItem TValue="string" Value="@("Post")">POST</SelectItem>
+                        <SelectItem TValue="string" Value="@("Put")">PUT</SelectItem>
+                        <SelectItem TValue="string" Value="@("Delete")">DELETE</SelectItem>
+                    </ChildContent>
+                    <Feedback>
+                        <ValidationError>Select one value!</ValidationError>
+                    </Feedback>
+                </Select>
+            </Field>
+        </Validation>
+
+        <Validation Validator="@ValidationRule.IsNotEmpty">
+            <Field>
+                <FieldLabel RequiredIndicator>Request URL {{$}}</FieldLabel>
+                <FieldBody>
+                    <TextEdit @bind-Text="DataMapUrl.Value"
+                              ReadOnly="IsReadOnly">
+                        <Feedback>
+                            <ValidationError />
+                        </Feedback>
+                    </TextEdit>
+                </FieldBody>
+            </Field>
+        </Validation>
+    </Validations>
+
+    <Accordion>
+        <AccordionItem>
+            <AccordionHeader>
+                <Heading Size="HeadingSize.Is5">
+                    <AccordionToggle>Advanced Settings</AccordionToggle>
+                </Heading>
+            </AccordionHeader>
+            <AccordionBody>
+                <Field>
+                    <FieldLabel>Headers {{$}}</FieldLabel>
+                    <FieldBody>
+                        <MemoEdit @bind-Value="DataMapHeaders.Value"
+                                  Rows="3"
+                                  Immediate="true"
+                                  ReadOnly="IsReadOnly" />
+                    </FieldBody>
+                </Field>
+
+                <Field>
+                    <FieldLabel>Params {{$}}</FieldLabel>
+                    <FieldBody>
+                        <MemoEdit @bind-Text="DataMapParameters.Value"
+                                  Rows="3"
+                                  Immediate="true"
+                                  ReadOnly="IsReadOnly" />
+                    </FieldBody>
+                </Field>
+                <Field>
+                    <FieldLabel>Number of seconds to wait before HTTP request timeout</FieldLabel>
+                    <FieldBody>
+                        <NumericEdit @bind-Value="@TimeoutInSec"
+                                     ReadOnly="IsReadOnly"
+                                     Min="-1"
+                                     Step="1"
+                                     TValue="int?" />
+                    </FieldBody>
+                    <FieldHelp>Default is 100 seconds. Use 0 or negative value to indicate no timeout</FieldHelp>
+                </Field>
+
+                <Tooltip Text="When checked, it will ignore SSL certificate validation.">
+                    <Check TValue="bool" @bind-Checked="IgnoreSsl"
+                           ReadOnly="IsReadOnly">Allow insecure SSL connection</Check>
+                </Tooltip>
+            </AccordionBody>
+        </AccordionItem>
+    </Accordion>
+</div>

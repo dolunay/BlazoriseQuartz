@@ -1,0 +1,220 @@
+@page "/"
+@page "/overview"
+@using Blazorise.Charts
+@using Blazorise.DataGrid
+@using BlazoriseQuartz.Core.Data.Entities
+<PageTitle>Overview</PageTitle>
+<div>
+    <Bar Breakpoint="Breakpoint.Desktop" Background="Background.Light" Shadow="Shadow.Remove" ThemeContrast="ThemeContrast.Light">
+        <BarBrand>
+            <Heading Size="HeadingSize.Is4">Overview</Heading>
+        </BarBrand>
+        <BarStart>
+        </BarStart>
+        <BarEnd>
+            <Switch Checked="AutoRefresh"
+                    TValue="bool"
+                    CheckedChanged="OnCheckAutoRefresh"
+                    Color="Color.Primary">
+                Auto Refresh
+            </Switch>
+        </BarEnd>
+    </Bar>
+    <Grid>
+        <Column ColumnSize="ColumnSize.Is3" Margin="Margin.Is1">
+            <Paper Elevation="2" Margin="Margin.Is1" Padding="Padding.Is1">
+                <Heading Size="HeadingSize.Is5" Class="title">Today</Heading>
+                <Chart @ref="todaysChart" TItem="double" Type="ChartType.Doughnut" Options="chartOptions" />
+            </Paper>
+        </Column>
+        <Column ColumnSize="ColumnSize.Is3" Margin="Margin.Is1">
+            <Paper Elevation="2" Margin="Margin.Is1" Padding="Padding.Is1">
+                <Heading Size="HeadingSize.Is5" Class="title">Yesterday</Heading>
+                <Chart @ref="yesterdaysChart" TItem="double" Type="ChartType.Doughnut" Options="chartOptions" />
+            </Paper>
+        </Column>
+        @* show all time logs if more than 1 day*@
+        @if (TotalLogDays > 1)
+        {
+            <Column ColumnSize="ColumnSize.Is3" Margin="Margin.Is1">
+                <Paper Elevation="2" Margin="Margin.Is1" Padding="Padding.Is1">
+                    <Heading Size="HeadingSize.Is5" Class="title">Last @TotalLogDays days</Heading>
+                    <Chart @ref="allTimeChart" TItem="double" Type="ChartType.Doughnut" Options="chartOptions" />
+                </Paper>
+            </Column>
+        }
+        @* Actions & Schedules *@
+        <Column ColumnSize="ColumnSize.Is3" Margin="Margin.Is1">
+            <Paper Elevation="2" Margin="Margin.Is1" Padding="Padding.Is1">
+                <Heading Size="HeadingSize.Is5" Class="title">Actions</Heading>
+                <Div Class="actionsform">
+                    @if (IsStartButtonVisible)
+                    {
+                        <Button Disabled="@IsStartStandbyDisabled" Margin="Margin.Is1"
+                                Clicked="OnStartScheduler"
+                                Color="Color.Primary">
+                            <Icon Name="@MaterialIcons.Start"></Icon>Start
+                        </Button>
+                    }
+                    else
+                    {
+                        <Button Disabled="@IsStartStandbyDisabled" Margin="Margin.Is1"
+                                Clicked="OnStandbyScheduler"
+                                Color="Color.Dark">
+                            <Icon Name="@MaterialIcons.Stop"></Icon>
+                            Standby
+                        </Button>
+                    }
+                    <Button Clicked="OnShutdownScheduler" Margin="Margin.Is1"
+                            Color="Color.Danger">
+                        <Icon Name="@MaterialIcons.PowerSettingsNew"></Icon>
+                        Shutdown
+                    </Button>
+                    <Button Disabled="@IsPauseResumeDisabled" Margin="Margin.Is1"
+                            Clicked="OnPauseAllSchedules"
+                            Color="Color.Default">
+                        <Icon Name="@MaterialIcons.Pause"></Icon>
+                        Pause All
+                    </Button>
+                    <Button Disabled="@IsPauseResumeDisabled" Margin="Margin.Is1"
+                            Clicked="OnResumeAllSchedules"
+                            Color="Color.Default">
+                        <Icon Name="@MaterialIcons.PlayArrow"></Icon>
+                        Resume All
+                    </Button>
+                </Div>
+            </Paper>
+            <Paper Elevation="2" Margin="Margin.Is1" Padding="Padding.Is1">
+                <Heading Size="HeadingSize.Is5" Class="title">Schedules</Heading>
+                <Table Class="scheduletab">
+                    <TableBody>
+                        <TableRow>
+                            <TableRowCell class="scheduletab__td scheduletab__td--txtright">
+                                <Heading Size="HeadingSize.Is6">@JobCount</Heading>
+                            </TableRowCell>
+                            <TableRowCell class="scheduletab__td">
+                                <Text TextSize="TextSize.Small">Jobs</Text>
+                            </TableRowCell>
+                        </TableRow>
+                        <TableRow>
+                            <TableRowCell class="scheduletab__td scheduletab__td--txtright">
+                                <Heading Size="HeadingSize.Is6">@TriggerCount</Heading>
+                            </TableRowCell>
+                            <TableRowCell class="scheduletab__td">
+                                <Text TextSize="TextSize.Small">Triggers</Text>
+                            </TableRowCell>
+                        </TableRow>
+                        <TableRow>
+                            <TableRowCell class="scheduletab__td scheduletab__td--txtright">
+                                <Heading Size="HeadingSize.Is6">@ExecutingCount</Heading>
+                            </TableRowCell>
+                            <TableRowCell class="scheduletab__td">
+                                <Text TextSize="TextSize.Small">Executing</Text>
+                            </TableRowCell>
+                        </TableRow>
+                    </TableBody>
+                </Table>
+            </Paper>
+        </Column>
+        <Column ColumnSize="ColumnSize.Is6" Margin="Margin.Is1">
+            <Paper Elevation="2" Margin="Margin.Is1" Padding="Padding.Is1">
+                <Heading Size="HeadingSize.Is5" Class="title">Information</Heading>
+                <Table Hoverable="true"
+                       Bordered="true">
+                    <TableBody>
+                        @foreach (var item in SchedulerInfo.Keys)
+                        {
+                            <TableRow>
+                                <TableRowCell>@item</TableRowCell>
+                                <TableRowCell>
+                                    @if (item.Equals(UptimeKey) && RunningSince.HasValue)
+                                    {
+                                        <Tooltip Text="@($"Running since {RunningSince?.ToLocalTime()}")">
+                                            @SchedulerInfo[item]
+                                        </Tooltip>
+                                    }
+                                    else
+                                    {
+                                        @SchedulerInfo[item]
+                                    }
+                                </TableRowCell>
+                            </TableRow>
+                        }
+                    </TableBody>
+                </Table>
+            </Paper>
+        </Column>
+        <Column ColumnSize="ColumnSize.Is6" Margin="Margin.Is1">
+            <Paper Elevation="2" Margin="Margin.Is1" Padding="Padding.Is1">
+                <Heading Size="HeadingSize.Is5">Failed Executions</Heading>
+                <DataGrid @ref="table"
+                          TItem="ExecutionLog"
+                          Data="@ErrorLogPagedList"
+                          ReadData="@RefreshErrorLogs"
+                          TotalItems="@ErrorLogTotalItems"
+                          PageSize="@PageSize"
+                          Editable="false"
+                          ShowPager
+                          FixedHeader
+                          Hoverable
+                          Responsive
+                          Striped>
+                    <LoadingTemplate>
+                        <Row TextAlignment="TextAlignment.Center" VerticalAlignment="VerticalAlignment.Middle" Style="height: 150px;">
+                            <Column>
+                                <RadarSpinner />
+                            </Column>
+                        </Row>
+                    </LoadingTemplate>
+                    <EmptyTemplate>
+                        <Row TextAlignment="TextAlignment.Center" VerticalAlignment="VerticalAlignment.Middle" Style="height: 150px;">
+                            <Column>
+                                <Heading Size="HeadingSize.Is4" TextAlignment="TextAlignment.Center">No data available</Heading>
+                            </Column>
+                        </Row>
+                    </EmptyTemplate>
+                    <DataGridColumns>
+                        <DataGridDateColumn Field="@nameof(ExecutionLog.FireTimeUtc)" Caption="Run Time" Width="120px">
+                            <DisplayTemplate>
+                                @(context.FireTimeUtc.HasValue ? context.FireTimeUtc!.Value.ToLocalTime().ToString("G") : "")
+                            </DisplayTemplate>
+                        </DataGridDateColumn>
+                        <DataGridColumn Field="@nameof(ExecutionLog.JobName)" Caption="Job Name"></DataGridColumn>
+                        <DataGridColumn Field="@nameof(ExecutionLog.JobGroup)" Caption="Job Group"></DataGridColumn>
+                        <DataGridColumn Field="@nameof(ExecutionLog.TriggerName)" Caption="Trigger"></DataGridColumn>
+                        <DataGridColumn Field="@nameof(ExecutionLog.ErrorMessage)" Caption="Message" Width="30%">
+                            <DisplayTemplate>
+                                <Text TextColor="TextColor.Dark">
+                                    @if (context.IsException ?? false)
+                                    {
+                                        @context.GetShortExceptionMessage()
+                                    }
+                                    else
+                                    {
+                                        @context.GetShortResultMessage()
+                                    }
+                                </Text>
+                                @if (context.IsException ?? false)
+                                {
+                                    <Button Size="Size.Small"
+                                            Clicked="@(async () => await OnMoreDetails(context, "Error Details"))"
+                                            Color="Color.Link">
+                                        Error Details
+                                    </Button>
+                                }
+                                else if (context.ShowExecutionDetailButton())
+                                {
+                                    <Button Size="Size.Small"
+                                            Clicked="@(async () => await OnMoreDetails(context, "Execution Details"))"
+                                            Color="Color.Link">
+                                        Execution Details
+                                    </Button>
+                                }
+                            </DisplayTemplate>
+                        </DataGridColumn>
+                    </DataGridColumns>
+                </DataGrid>
+            </Paper>
+        </Column>
+    </Grid>
+</div>

@@ -1,0 +1,27 @@
+﻿<Bar Breakpoint="Breakpoint.Desktop" NavigationBreakpoint="Breakpoint.Tablet" ThemeContrast="ThemeContrast.Dark"
+     Mode="BarMode.VerticalInline" CollapseMode="BarCollapseMode.Small" MenuToggleBehavior=BarMenuToggleBehavior.AllowSingleMenu>
+    <BarToggler />
+    <BarBrand>
+        <BarItem>
+            <BarLink To="">
+                <BarIcon IconName="customIcon" />
+                Blazorise Demo
+            </BarLink>
+        </BarItem>
+    </BarBrand>
+    <BarMenu>
+        <BarStart>
+        </BarStart>
+        <BarEnd>
+        </BarEnd>
+    </BarMenu>
+</Bar>
+@code {
+    private bool uiElementsVisible = true;
+    private bool utilitiesVisible = false;
+    private bool extensionsVisible = false;
+    private bool formsVisible = false;
+    private bool datagridVisible = false;
+
+    RenderFragment customIcon =@<img src="/brand-logo.png" style="width:32px; height: 32px" />;
+}

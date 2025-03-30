@@ -1,0 +1,7 @@
+﻿@inherits BaseItemsControl<TimelineItem>
+
+<div @attributes="Attributes" class="@ClassNames" style="@Style">
+    <CascadingValue Value="this">
+        @ChildContent
+    </CascadingValue>
+</div>

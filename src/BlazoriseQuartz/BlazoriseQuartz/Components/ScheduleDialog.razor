@@ -1,0 +1,40 @@
+﻿<ModalBody>
+    <Grid Gap="Gap.Is0.OnY">
+        <Column ColumnSize="ColumnSize.Is12" Margin="Margin.Is1.FromBottom" Background="Background.Light" Shadow="Shadow.Small">
+            <Button Color="Color.Default" Size="Size.Large" Shadow="Shadow.None"
+                    Outline="@(SelectedTab == ScheduleDialogTab.Job)"
+                    Clicked="() => OnSelectedTabChanged(ScheduleDialogTab.Job)">
+                Job Details
+            </Button>
+            <Button Color="Color.Default" Size="Size.Large" Shadow="Shadow.None" Outline="@(SelectedTab == ScheduleDialogTab.Trigger)"
+                    Clicked="() => OnSelectedTabChanged(ScheduleDialogTab.Trigger)">
+                Trigger Details
+            </Button>
+        </Column>
+        <Column ColumnSize="ColumnSize.Is12" Margin="Margin.Is0">
+            @if (SelectedTab == ScheduleDialogTab.Job)
+            {
+                <BlazoriseJob @ref="_jobPanel" JobDetail="JobDetail" @bind-IsValid="_jobDetailIsValid" IsReadOnly="IsReadOnlyJobDetail" />
+            }
+            else
+            {
+                <BlazoriseTrigger @ref="_triggerPanel" TriggerDetail="TriggerDetail" @bind-IsValid="_triggerDetailIsValid" />
+            }
+        </Column>
+    </Grid>
+</ModalBody>
+<ModalFooter>
+    <Grid>
+        <Column ColumnSize="ColumnSize.Is1" Margin="Margin.Is0">
+            <Button Clicked="OnCancel">Cancel</Button>
+        </Column>
+        <Column ColumnSize="ColumnSize.Is11" TextAlignment="TextAlignment.End" Margin="Margin.Is0">
+            <Button Disabled="@(SelectedTab == ScheduleDialogTab.Job)"
+                    Color="Color.Secondary"
+                    Clicked="OnBack">
+                <Icon Name="@MaterialIcons.NavigateBefore" />Back
+            </Button>
+            <Button Color="Color.Primary" Clicked="OnSubmit">@_nextText<Icon Name="@_nextIcon" /></Button>
+        </Column>
+    </Grid>
+</ModalFooter>

@@ -1,0 +1,55 @@
+
+<Form>
+    <ModalBody>
+        <Validations @ref="_validations">
+            <Validation Validator="@ValidateKey">
+                <Field>
+                    <FieldLabel RequiredIndicator="true">Key</FieldLabel>
+                    <TextEdit @bind-Text="DataMapItem.Key" Autofocus="true"
+                              ReadOnly="IsEditMode"
+                              Margin="Margin.Is0"
+                              Class="mb-3">
+                        <Feedback>
+                            <ValidationError />
+                        </Feedback>
+                    </TextEdit>
+                </Field>
+            </Validation>
+
+            <Validation Validator="ValidationRule.IsSelected">
+                <Field>
+                    <FieldLabel RequiredIndicator="true">Type</FieldLabel>
+                    <Select TValue="DataMapType?"
+                            Class="mb-3"
+                            @bind-SelectedValue="DataMapItem.Type"
+                            Margin="Margin.Is0">
+                        <ChildContent>
+                            @foreach (var typ in AvailableDataMapTypes)
+                            {
+                                <SelectItem TValue="DataMapType?" Value="typ.Key">@typ.Value</SelectItem>
+                            }
+                        </ChildContent>
+                        <Feedback>
+                            <ValidationError>Select one value!</ValidationError>
+                        </Feedback>
+                    </Select>
+                </Field>
+            </Validation>
+
+            <Validation Validator="ValidationRule.IsNotEmpty">
+                <Field>
+                    <FieldLabel RequiredIndicator="true">Value</FieldLabel>
+                    <MemoEdit @bind-Text="Value" Autofocus="true" Rows="3">
+                        <Feedback>
+                            <ValidationError />
+                        </Feedback>
+                    </MemoEdit>
+                </Field>
+            </Validation>
+        </Validations>
+    </ModalBody>
+    <ModalFooter>
+        <Button Clicked="OnCancel">Cancel</Button>
+        <SubmitButton Color="Color.Primary" Clicked="OnSave">Save</SubmitButton>
+    </ModalFooter>
+</Form>
