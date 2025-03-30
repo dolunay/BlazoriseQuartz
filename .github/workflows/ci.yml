@@ -23,21 +23,22 @@ jobs:
         dotnet-version: | 
           7.0.x
           8.0.x
+          9.0.x
     - name: Restore dependencies
       run: dotnet restore
-      working-directory: src/BlazingQuartz
+      working-directory: src/BlazoriseQuartz
     - name: Build
       run: dotnet build --no-restore -p:Version=${{steps.tag.outputs.tag}} -p:PackageVersion=${{steps.tag.outputs.tag}} --configuration Release
-      working-directory: src/BlazingQuartz
+      working-directory: src/BlazoriseQuartz
     - name: Test
       run: dotnet test --no-build --verbosity normal --configuration Release
-      working-directory: src/BlazingQuartz
-    - name: Publish BlazingQuartzApp
-      run: dotnet publish -c Release --no-restore -o "../../app" -p:Version=${{steps.tag.outputs.tag}} -p:PackageVersion=${{steps.tag.outputs.tag}} "BlazingQuartzApp/BlazingQuartzApp.csproj"
-      working-directory: src/BlazingQuartz
+      working-directory: src/BlazoriseQuartz
+    - name: Publish BlazoriseQuartzApp
+      run: dotnet publish -c Release --no-restore -o "../../app" -p:Version=${{steps.tag.outputs.tag}} -p:PackageVersion=${{steps.tag.outputs.tag}} "BlazoriseQuartzApp/BlazoriseQuartzApp.csproj"
+      working-directory: src/BlazoriseQuartz
     - uses: actions/upload-artifact@v4
       with:
-        name: BlazingQuartzApp
+        name: BlazoriseQuartzApp
         path: app/
         
   docker:
@@ -50,10 +51,10 @@ jobs:
       uses: dawidd6/action-get-tag@v1
       with:
         strip_v: true
-    - name: Download BlazingQuartzApp artifact
+    - name: Download BlazoriseQuartzApp artifact
       uses: actions/download-artifact@v4
       with:
-        name: BlazingQuartzApp
+        name: BlazoriseQuartzApp
         path: app/
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v2
@@ -70,4 +71,4 @@ jobs:
         context: .
         push: true
         platforms: linux/amd64,linux/arm64
-        tags: wilchn/blazingquartzapp:latest, wilchn/blazingquartzapp:${{steps.tag.outputs.tag}}
+        tags: dolunay/blazorisequartzapp:latest, dolunay/blazorisequartzapp:${{steps.tag.outputs.tag}}
