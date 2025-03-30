@@ -17,24 +17,6 @@ namespace BlazoriseQuartz.Components
 		private int elevation = 1;
 		private TimelineAlign timelineAlign;
 
-		//protected string Classnames =>
-		//    new CssBuilder("mud-timeline-item")
-		//        .AddClass($"mud-timeline-item-{TimelineAlign.ToDescriptionString()}")
-		//.AddClass(Class)
-		//        .Build();
-
-		//protected string DotClassnames =>
-		//    new CssBuilder("mud-timeline-item-dot")
-		//        .AddClass($"mud-timeline-dot-size-{Size.ToDescriptionString()}")
-		//        .AddClass($"mud-elevation-{Elevation}")
-		//.Build();
-
-		//protected string DotInnerClassnames =>
-		//    new CssBuilder("mud-timeline-item-dot-inner")
-		//        .AddClass($"mud-timeline-dot-fill", Variant == Variant.Filled)
-		//        .AddClass($"mud-timeline-dot-{Color.ToDescriptionString()}")
-		//        .Build();
-
 		public string DotInnerClassNames => this.DotInnerClassBuilder.Class;
 		protected ClassBuilder DotInnerClassBuilder { get; private set; }
 

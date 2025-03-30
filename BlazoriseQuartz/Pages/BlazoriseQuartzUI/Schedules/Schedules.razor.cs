@@ -353,15 +353,6 @@ namespace BlazoriseQuartz.Pages.BlazoriseQuartzUI.Schedules
             }
         }
 
-        private Func<ScheduleModel, int, string> ScheduleRowStyleFunc => (model, i) =>
-        {
-            if (model.JobStatus == JobStatus.NoSchedule ||
-                model.JobStatus == JobStatus.Error)
-                return "background-color:var(--mud-palette-background-grey)";
-
-            return "";
-        };
-
         private async Task NewSchedule(JobDetailModel JobDetail, TriggerDetailModel TriggerDetail)
         {
 			// create schedule

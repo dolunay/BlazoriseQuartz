@@ -1,15 +1,21 @@
-﻿<MudTextField Value="@DataMapMessage.Value"
-              For="@(() => DataMapMessage.Value)"
-              HelperText="This field support dynamic variables. Try {{$datetime iso8601}}"
-              TextChanged="OnMessageChanged"
-              DebounceInterval="500"
-              Margin="Margin.Dense"
-              Variant="Variant.Outlined"
-              ReadOnly="IsReadOnly"
-              Label="Message" />
+﻿<Field>
+    <FieldLabel>Message</FieldLabel>
+    <FieldBody>
+        <TextEdit Text="@DataMapMessage.Value"
+                  TextChanged="OnMessageChanged"
+                  DebounceInterval="500"
+                  Margin="Margin.Is0"
+                  ReadOnly="IsReadOnly" />
+        <FieldHelp>This field support dynamic variables. Try {{$datetime iso8601}}</FieldHelp>
+    </FieldBody>
+</Field>
 
-<MudText Typo="Typo.body1">Output: @ResolvedMessage</MudText>
-
-<MudNumericField @bind-Value="DelayInMs" Label="Delay (in ms)"
-                 Margin="Margin.Dense"
-                 Variant="Variant.Outlined"Step="1" />
+<Text TextSize="TextSize.Medium">Output: @ResolvedMessage</Text>
+<Field>
+    <FieldLabel>Delay (in ms)</FieldLabel>
+    <FieldBody>
+        <NumericEdit @bind-Value="DelayInMs"
+                     Margin="Margin.Is0"
+                     Step="1" />
+    </FieldBody>
+</Field>
