@@ -1,9 +1,10 @@
 name: Build and Publish
 
 on:
-    push:
-        tags:
-        - '*.*.*'
+  workflow_dispatch:
+  push:
+    branches: [ "main", "dev" ]
+  pull_request:
 
 jobs:
   build:
