@@ -8,7 +8,9 @@ using BlazoriseQuartz.Jobs.Abstractions;
 
 namespace BlazoriseQuartz.Jobs
 {
-    public class HttpJob : IJob
+    public class HttpJob(IHttpClientFactory httpClientFactory,
+		ILogger<HttpJob> logger,
+		IDataMapValueResolver dmvResolver) : IJob
     {
         public const string PropertyRequestAction = "requestAction";
         public const string PropertyRequestUrl = "requestUrl";
@@ -20,20 +22,7 @@ namespace BlazoriseQuartz.Jobs
         /// </summary>
         public const string PropertyRequestTimeoutInSec = "requestTimeout";
 
-        private readonly IHttpClientFactory _httpClientFactory;
-        private readonly ILogger<HttpJob> _logger;
-        private readonly IDataMapValueResolver _dmvResolver;
-
-        public HttpJob(IHttpClientFactory httpClientFactory,
-            ILogger<HttpJob> logger,
-            IDataMapValueResolver dmvResolver)
-        {
-            _httpClientFactory = httpClientFactory;
-            _logger = logger;
-            _dmvResolver = dmvResolver;
-        }
-
-        public async Task Execute(IJobExecutionContext context)
+		public async Task Execute(IJobExecutionContext context)
         {
             try
             {
@@ -41,17 +30,17 @@ namespace BlazoriseQuartz.Jobs
 
                 int? timeoutInSec = data.TryGetInt(PropertyRequestTimeoutInSec, out var x) ? x : null;
                 var dmvUrl = data.GetDataMapValue(PropertyRequestUrl);
-                var url = _dmvResolver.Resolve(dmvUrl);
+                var url = dmvResolver.Resolve(dmvUrl);
                 if (string.IsNullOrEmpty(url))
                 {
-                    _logger.LogWarning("[{runInstanceId}]. Cannot run HttpJob. No request url specified.",
+                    logger.LogWarning("[{runInstanceId}]. Cannot run HttpJob. No request url specified.",
                         context.FireInstanceId);
                     throw new JobExecutionException("No request url specified");
                 }
                 url = url.StartsWith("http") ? url : "http://" + url;
 
-                var parameters = _dmvResolver.Resolve(data.GetDataMapValue(PropertyRequestParameters));
-                var strHeaders = _dmvResolver.Resolve(data.GetDataMapValue(PropertyRequestHeaders));
+                var parameters = dmvResolver.Resolve(data.GetDataMapValue(PropertyRequestParameters));
+                var strHeaders = dmvResolver.Resolve(data.GetDataMapValue(PropertyRequestHeaders));
                 var headers = string.IsNullOrEmpty(strHeaders) ? null :
                     JsonSerializer.Deserialize<Dictionary<string, string>>(strHeaders.Trim());
 
@@ -59,24 +48,24 @@ namespace BlazoriseQuartz.Jobs
                 HttpAction action;
                 if (strAction == null)
                 {
-                    _logger.LogWarning("[{runInstanceId}]. Cannot run HttpJob. No http action specified.",
+                    logger.LogWarning("[{runInstanceId}]. Cannot run HttpJob. No http action specified.",
                         context.FireInstanceId);
                     throw new JobExecutionException("No http action specified");
                 }
                 action = Enum.Parse<HttpAction>(strAction);
 
-                _logger.LogDebug("[{runInstanceId}]. Creating HttpClient...", context.FireInstanceId);
+                logger.LogDebug("[{runInstanceId}]. Creating HttpClient...", context.FireInstanceId);
                 HttpClient httpClient;
                 if (data.TryGetBoolean(PropertyIgnoreVerifySsl, out var IgnoreVerifySsl) && IgnoreVerifySsl)
                 {
-                    httpClient = _httpClientFactory.CreateClient(Constants.HttpClientIgnoreVerifySsl);
-                    _logger.LogInformation("[{runInstanceId}]. Created ignore SSL validation HttpClient.",
+                    httpClient = httpClientFactory.CreateClient(Constants.HttpClientIgnoreVerifySsl);
+                    logger.LogInformation("[{runInstanceId}]. Created ignore SSL validation HttpClient.",
                         context.FireInstanceId);
                 }
                 else
                 {
-                    httpClient = _httpClientFactory.CreateClient();
-                    _logger.LogInformation("[{runInstanceId}]. Created HttpClient.",
+                    httpClient = httpClientFactory.CreateClient();
+                    logger.LogInformation("[{runInstanceId}]. Created HttpClient.",
                         context.FireInstanceId);
                 }
 
@@ -106,7 +95,7 @@ namespace BlazoriseQuartz.Jobs
                     reqParam = new StringContent(parameters, Encoding.UTF8, Application.Json);
 
                 HttpResponseMessage response = new HttpResponseMessage();
-                _logger.LogInformation("[{runInstanceId}]. Sending '{action}' request to specified url '{url}'.",
+                logger.LogInformation("[{runInstanceId}]. Sending '{action}' request to specified url '{url}'.",
                     context.FireInstanceId, action, url);
                 switch (action)
                 {
@@ -125,7 +114,7 @@ namespace BlazoriseQuartz.Jobs
                 }
 
                 var result = await response.Content.ReadAsStringAsync(context.CancellationToken);
-                _logger.LogInformation("[{runInstanceId}]. Response tatus code '{code}'.",
+                logger.LogInformation("[{runInstanceId}]. Response tatus code '{code}'.",
                     context.FireInstanceId, response.StatusCode);
                 context.Result = result;
                 context.SetIsSuccess(response.IsSuccessStatusCode);
@@ -139,7 +128,7 @@ namespace BlazoriseQuartz.Jobs
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Failed to run HttpJob. [{runInstanceId}]",
+                logger.LogWarning(ex, "Failed to run HttpJob. [{runInstanceId}]",
                     context.FireInstanceId);
                 context.SetIsSuccess(false);
                 throw new JobExecutionException("Failed to execute http job", ex);

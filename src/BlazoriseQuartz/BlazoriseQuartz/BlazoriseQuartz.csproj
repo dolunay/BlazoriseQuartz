@@ -25,7 +25,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.3" />
+		<!--<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.3" />-->
 		<PackageReference Include="Blazorise" Version="1.7.5" />
 		<PackageReference Include="Blazorise.Components" Version="1.7.5" />
 		<PackageReference Include="Blazorise.Charts" Version="1.7.5" />
